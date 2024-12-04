@@ -2,54 +2,64 @@
 title: "The Drivers of Commuter Behavior in France"
 author: "Mathilde VALLAT, Yesmine HACHANA"
 format: html
+editor: 
+  markdown: 
+    wrap: 72
 ---
-Link to the github project: https://github.com/jemappelleyesmine/final_project
+
+Link to the github project:
+https://github.com/jemappelleyesmine/final_project
 
 # Datasets
 
 ## Links to the sources
 
 ### INSEE_Statistiques_locales_demographie.csv
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
-To reproduce the data selection:
-In "CHOISIR DES INDICATEURS", go to DÉMOGRAPHIE, then select:
-- Population municipale (historique depuis 1876) 2021
-- Densité de population (historique depuis 1876) 2021
-In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Intercommunalité-Métropole
+
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
+reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
+DÉMOGRAPHIE, then select: - Population municipale (historique depuis
+1876) 2021 - Densité de population (historique depuis 1876) 2021 In
+"CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select: -
+Intercommunalité-Métropole
 
 ### INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
-To reproduce the data selection:
-In "CHOISIR DES INDICATEURS", go to REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select:
-- Nb de ménages fiscaux 2021
-- Médiane du niveau de vie 2021
-In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Commune
+
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
+reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
+REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select: - Nb de ménages
+fiscaux 2021 - Médiane du niveau de vie 2021 In "CHANGER LE DÉCOUPAGE
+GÉOGRAPHIQUE", select: - Commune
 
 ### INSEE_Statistiques_locales_territoires_ville_quartiers.csv
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
-To reproduce the data selection:
-In "CHOISIR DES INDICATEURS", go to TERRITOIRES, VILLES ET QUARTIERS, then select:
-- Nb de ménages fiscaux 2021
-- Médiane du niveau de vie 2021
-In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Commune
+
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
+reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
+TERRITOIRES, VILLES ET QUARTIERS, then select: - Nb de ménages fiscaux
+2021 - Médiane du niveau de vie 2021 In "CHANGER LE DÉCOUPAGE
+GÉOGRAPHIQUE", select: - Commune
 
 ### stops_france.csv.gz
-Source: https://transport.data.gouv.fr/datasets/arrets-de-transport-en-france
+
+Source:
+https://transport.data.gouv.fr/datasets/arrets-de-transport-en-france
 
 ### RP2021_mobpro.zip
+
 Source: https://www.insee.fr/fr/statistiques/8205896?sommaire=8205966
 
 ### BTT_TD_NAV2B_2017.zip
-Source: https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter
-To reproduce the data selection:
-"NAV2B – Population active de 15 ans ou plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et moyen de transport"
+
+Source:
+https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter
+To reproduce the data selection: "NAV2B – Population active de 15 ans ou
+plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et
+moyen de transport"
 
 ## Loading the three final datasets
 
 ### Loading stops_france
+
 ```{r}
 library(vroom)
 library(here)
@@ -74,7 +84,9 @@ if (!file.exists(here(local_dir, local_name))) {
   stops_france <- vroom(here(local_dir, local_name))
 }
 ```
+
 ### Loading mob_pro
+
 ```{r}
 library(zip)
 # Define variables
@@ -99,7 +111,9 @@ mob_pro <- vroom(here(local_dir, csv1_name))
 # Load the second CSV file
 var_mob_pro <- vroom(here(local_dir, csv2_name))
 ```
+
 ### Loading iltduu_sexe_trans
+
 ```{r}
 # Define variables
 source <- "https://www.insee.fr/fr/statistiques/fichier/4515510/BTT_TD_NAV2B_2017.zip"
@@ -121,3 +135,113 @@ unzip(here(local_dir, local_name), exdir = here(local_dir))
 iltduu_sexe_trans <- vroom(here(local_dir, csv_name))
 ```
 
+# Project Description
+
+## Description of the sources
+
+Our first source is the “Statistiques Locales” platform by INSEE. This
+platform provides geolocalized data to analyze territorial / spatial
+phenomena in France. It is an online tool that can allow us to have
+access to statistical information (which are categorized by geographic
+areas) through tables . Most importantly for us, it offers datasets on
+urban and travel indicators. There are three datasets from this platform
+which we are interested in: The data tab called “Territoires, villes et
+quartiers” (especially its sub-tab “Mobilités - Déplacements”). The data
+tab called “Démographie” (notably its data on population density by
+geography). The data tab called “Développement Durable - Environnement”,
+which provides a data set on the median standard of living in France by
+geographical area (“commune”).
+
+Our second source is an experimental dataset published on the
+governmental website transport.data.gouv.fr by the “Ministère du
+partenariat avec les territoires et de la décentralisation”. This
+platform provides a dataset of public transport stop points across
+France. This dataset aggregates GTFS (General Transit Feed
+Specification) data collected from the National Access Point for
+transport data. It includes the name, coordinates (longitude and
+latitude), region, mobility authority (if applicable), and GTFS
+identifiers of each stop. The data set has limitations such as
+duplication of stops.
+
+Our third source is INSEE's December 2020 dataset on commuting patterns
+from the 2017 population census. This dataset, titled NAV2B, focuses on
+employed individuals aged 15 and older, sharing their means of
+transportation for commuting to work, disaggregated by gender and
+workplace geography (urban vs. rural). It provides granular data at the
+municipal level for all French communes except Mayotte.
+
+Our final source is an INSEE 2024 dataset on professional mobility, from
+the 2021 population It contains data linking individuals' places of
+residence and work at the municipal level, including cross-border
+commuting. It provides information on individuals aged 15 and older who
+are employed, with variables describing their household, primary
+residence, and commuting patterns.
+
+## Description of the research question
+
+Our research question is: “What are the drivers influencing commuter
+choices in France?” Understanding what influences individuals’ commuting
+choices in France can provide insights into environmental policy and
+urban planning. Commuter behavior reflects socio-economic, geographic,
+and infrastructural factors, which shape transportation systems, urban
+development, and sustainability efforts. This project seeks to explore
+possible key drivers of commuter choices, with a focus on big datasets
+with different levels of aggregation. We chose to investigate several
+factors influencing commuter behavior based on the availability of
+datasets and the type of information that could be publicly available.
+Here are some factors that we have thought of: Type of Area (Urban or
+Rural) – Commuting options and preferences may differ between urban and
+rural areas due to infrastructure availability, population density, and
+economic activity.
+
+-   Socio-Professional Category and Income Levels – Professional status
+    and income levels might play a role in transportation choices
+    (affordability, accessibility).
+
+-   Population Density – Denser areas may encourage the use of public
+    transit and non-motorized options, while less dense regions may rely
+    more heavily on private vehicles.
+
+-   Commuting Distance – The length of the commute is an important
+    variable, as it could dictate whether an individual opts for
+    walking, cycling, driving, or public transit.
+
+-   Accessibility to Transportation Infrastructure – The availability of
+    public transit could affect convenience and practicality.
+
+Our project involves several steps: firstly, we must collect, store, and
+organize datasets in a GitHub repository. Since datasets are aggregated
+at varying levels (e.g., “commune” vs. “intercommunal”), we will have to
+harmonize these differences using data management methods seen in class.
+In parallel, we will have to look for missing or inconsistent data that
+may complicate our data analysis. After this, we will start initial data
+exploration by trying to summarize variables and visualize relationships
+using R. At the end, the goal will be to generate visualizations to
+identify patterns and evaluate the influence of each factor on commuter
+behavior. The biggest challenge will probably be harmonizing datasets
+with differing levels of aggregation, such as municipal and regional
+data. For now, our expectations are to successfully manage to clean the
+data, and find some drivers of commuter behavior in France and manage to
+generate clear and simple ways to visualize and understand those
+patterns.
+
+## Description of implemented dataset manipulation
+
+A first challenge was to try to include large datasets. We wrote code in
+R that ensures files are downloaded, saved, and loaded regardless of the
+size limit on Github. For the first dataset called stops_france, we used
+the vroom and here packages. The code checks if a local directory named
+data exists, creating it if necessary. It then checks whether the
+dataset file is already stored locally. If the file is missing, it
+downloads the dataset from the source and saves it in a compressed
+format (.gz). If the file is already available, it is loaded directly
+from the local directory. The second dataset, mob_pro, is a ZIP file
+containing multiple CSV files. After confirming the data directory
+exists, the code checks for the presence of the ZIP file locally. If it
+is not found, the file is downloaded and extracted into the data
+directory. The extracted CSV files are then loaded individually using
+the vroom package. So far, we have not cleaned or joined the data.
+Cleaning will include handling missing values and selecting relevant
+variables. Joining will involve combining datasets with different levels
+of aggregation, such as linking geographic data with socio-economic
+indicators. These will be our next steps!
