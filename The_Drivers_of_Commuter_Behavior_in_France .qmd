@@ -225,7 +225,7 @@ data, and find some drivers of commuter behavior in France and manage to
 generate clear and simple ways to visualize and understand those
 patterns.
 
-## Description of implemented dataset manipulation
+## Description of implemented dataset integration
 
 A first challenge was to try to include large datasets. We wrote code in
 R that ensures files are downloaded, saved, and loaded regardless of the
