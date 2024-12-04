@@ -3,8 +3,51 @@ title: "The Drivers of Commuter Behavior in France"
 author: "Mathilde VALLAT, Yesmine HACHANA"
 format: html
 ---
+Link to the github project: https://github.com/jemappelleyesmine/final_project
 
-## Loading the two final datasets
+# Datasets
+
+## Links to the sources
+
+### INSEE_Statistiques_locales_demographie.csv
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
+To reproduce the data selection:
+In "CHOISIR DES INDICATEURS", go to DÉMOGRAPHIE, then select:
+- Population municipale (historique depuis 1876) 2021
+- Densité de population (historique depuis 1876) 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Intercommunalité-Métropole
+
+### INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
+To reproduce the data selection:
+In "CHOISIR DES INDICATEURS", go to REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select:
+- Nb de ménages fiscaux 2021
+- Médiane du niveau de vie 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Commune
+
+### INSEE_Statistiques_locales_territoires_ville_quartiers.csv
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
+To reproduce the data selection:
+In "CHOISIR DES INDICATEURS", go to TERRITOIRES, VILLES ET QUARTIERS, then select:
+- Nb de ménages fiscaux 2021
+- Médiane du niveau de vie 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Commune
+
+### stops_france.csv.gz
+Source: https://transport.data.gouv.fr/datasets/arrets-de-transport-en-france
+
+### RP2021_mobpro.zip
+Source: https://www.insee.fr/fr/statistiques/8205896?sommaire=8205966
+
+### BTT_TD_NAV2B_2017.zip
+Source: https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter
+To reproduce the data selection:
+"NAV2B – Population active de 15 ans ou plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et moyen de transport"
+
+## Loading the three final datasets
 
 ### Loading stops_france
 ```{r}
@@ -32,7 +75,6 @@ if (!file.exists(here(local_dir, local_name))) {
 }
 ```
 ### Loading mob_pro
-
 ```{r}
 library(zip)
 # Define variables
@@ -57,5 +99,25 @@ mob_pro <- vroom(here(local_dir, csv1_name))
 # Load the second CSV file
 var_mob_pro <- vroom(here(local_dir, csv2_name))
 ```
-
+### Loading iltduu_sexe_trans
+```{r}
+# Define variables
+source <- "https://www.insee.fr/fr/statistiques/fichier/4515510/BTT_TD_NAV2B_2017.zip"
+local_name <- "BTT_TD_NAV2B_2017.zip"
+local_dir <- "data"
+csv_name <- "BTT_TD_NAV2B_2017.CSV"
+# Check if the directory exists, create it if not
+if (!dir.exists(here(local_dir))) {
+  dir.create(here(local_dir))
+}
+# Check if the ZIP file exists locally
+if (!file.exists(here(local_dir, local_name))) {
+  # Download the ZIP file
+  download.file(source, destfile = here(local_dir, local_name), mode = "wb")
+}
+# Unzip the file
+unzip(here(local_dir, local_name), exdir = here(local_dir))
+# Load the specified CSV file
+iltduu_sexe_trans <- vroom(here(local_dir, csv_name))
+```
 
