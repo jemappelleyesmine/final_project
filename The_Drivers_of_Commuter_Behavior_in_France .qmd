@@ -16,28 +16,34 @@ https://github.com/jemappelleyesmine/final_project
 
 ### INSEE_Statistiques_locales_demographie.csv
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
-reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
-DÉMOGRAPHIE, then select: - Population municipale (historique depuis
-1876) 2021 - Densité de population (historique depuis 1876) 2021 In
-"CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select: -
-Intercommunalité-Métropole
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
+To reproduce the data selection:
+In "CHOISIR DES INDICATEURS", go to DÉMOGRAPHIE, then select:
+- Population municipale (historique depuis 1876) 2021
+- Densité de population (historique depuis 1876) 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Intercommunalité-Métropole
 
 ### INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
-reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
-REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select: - Nb de ménages
-fiscaux 2021 - Médiane du niveau de vie 2021 In "CHANGER LE DÉCOUPAGE
-GÉOGRAPHIQUE", select: - Commune
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
+To reproduce the data selection:
+In "CHOISIR DES INDICATEURS", go to REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select:
+- Nb de ménages fiscaux 2021
+- Médiane du niveau de vie 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Commune
 
 ### INSEE_Statistiques_locales_territoires_ville_quartiers.csv
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
-reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
-TERRITOIRES, VILLES ET QUARTIERS, then select: - Nb de ménages fiscaux
-2021 - Médiane du niveau de vie 2021 In "CHANGER LE DÉCOUPAGE
-GÉOGRAPHIQUE", select: - Commune
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
+To reproduce the data selection: In "CHOISIR DES INDICATEURS", go to TERRITOIRES, VILLES ET QUARTIERS, then select:
+- Part des actifs occupés de 15 ans ou plus  les transports en commun 2021
+- Part des ménages ayant au moins 1 voiture 2021
+- Part des actifs occ 15 ans ou plus voiture pour travailler 2021
+- Part des actifs occ 15 ans ou plus vélo pour travailler 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Commune
 
 ### stops_france.csv.gz
 
@@ -52,9 +58,7 @@ Source: https://www.insee.fr/fr/statistiques/8205896?sommaire=8205966
 
 Source:
 https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter
-To reproduce the data selection: "NAV2B – Population active de 15 ans ou
-plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et
-moyen de transport"
+To reproduce the data selection: "NAV2B – Population active de 15 ans ou plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et moyen de transport"
 
 ## Loading the three final datasets
 
@@ -135,6 +139,13 @@ unzip(here(local_dir, local_name), exdir = here(local_dir))
 iltduu_sexe_trans <- vroom(here(local_dir, csv_name))
 ```
 
+## Importing the local files
+```{r}
+demo <- vroom(here("data", "INSEE_Statistiques_locales_demographie.csv"))
+revenus <- vroom(here("data","INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv"))
+local_mob <- vroom(here("data","INSEE_Statistiques_locales_territoires_ville_quartiers.csv"))
+```
+
 # Project Description
 
 ## Description of the sources
@@ -176,6 +187,47 @@ residence and work at the municipal level, including cross-border
 commuting. It provides information on individuals aged 15 and older who
 are employed, with variables describing their household, primary
 residence, and commuting patterns.
+
+
+```{r}
+# Load required libraries
+library(tibble)
+library(knitr)
+
+# Define datasets
+datasets <- list(
+  iltduu_sexe_trans = iltduu_sexe_trans,
+  stops_france = stops_france,
+  mob_pro = mob_pro,
+  var_mob_pro = var_mob_pro,
+  revenus = revenus,
+  demo = demo,
+  local_mob = local_mob
+)
+
+# Generate a table for each dataset
+for (name in names(datasets)) {
+  # Access the dataset
+  data <- datasets[[name]]
+  # Compute basic information
+  summary_table <- tibble(
+    Statistic = c(
+      "Number of Rows",
+      "Number of Columns"
+    ),
+    Value = c(
+      nrow(data),
+      ncol(data)
+    )
+  )
+  # Print a heading and the table
+  cat("\n### Summary Table for Dataset:", name, "\n")
+  print(kable(summary_table))
+  cat("\n")
+}
+```
+
+
 
 ## Description of the research question
 
