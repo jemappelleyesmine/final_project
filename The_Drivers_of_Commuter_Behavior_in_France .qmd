@@ -366,3 +366,55 @@ to their residence, categorized into five groups: within the same
 municipality, a different municipality in the same department, another
 department in the same region, another region in metropolitan France, or
 outside metropolitan France (including overseas or abroad).
+
+## Graphical representation of one of the main variables
+
+```{r}
+# Load libraries
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+# Remove rows where nb is na
+iltduu_sexe_trans <- iltduu_sexe_trans %>%
+  filter(!is.na(NB))
+```
+
+```{r}
+# checking there are no missing values there
+any(is.na(iltduu_sexe_trans$NB))
+```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales) # formatting the numbers :)
+
+# Summarizing our data to get counts for each transport mode
+trans_19_summary <- iltduu_sexe_trans %>%
+  group_by(TRANS_19) %>%
+  summarise(Count = sum(NB)) # Sum the NB column for each transport mode
+
+# Mapping the transport modes to their labels
+trans_19_summary$Mode <- factor(trans_19_summary$TRANS_19,
+  levels = 1:6,
+  labels = c("No Transport", "Walking", "Bicycle", "Motorized Two-Wheelers", "Car/Truck/Van", "Public Transport")
+)
+
+# Creating the graphical representation (after everything)
+ggplot(trans_19_summary, aes(x = Mode, y = Count, fill = Mode)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Transport Modes (TRANS_19)",
+    x = "Mode of Transport",
+    y = "Count of Individuals"
+  ) +
+  scale_y_continuous(labels = label_comma()) + # Format y-axis labels
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
