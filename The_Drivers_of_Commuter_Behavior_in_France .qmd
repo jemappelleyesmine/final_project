@@ -139,7 +139,7 @@ unzip(here(local_dir, local_name), exdir = here(local_dir))
 iltduu_sexe_trans <- vroom(here(local_dir, csv_name))
 ```
 
-## Importing the local files
+## Loading the local files
 ```{r}
 demo <- vroom(here("data", "INSEE_Statistiques_locales_demographie.csv"))
 revenus <- vroom(here("data","INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv"))
