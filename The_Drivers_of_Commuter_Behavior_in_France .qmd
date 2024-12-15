@@ -16,34 +16,31 @@ https://github.com/jemappelleyesmine/final_project
 
 ### INSEE_Statistiques_locales_demographie.csv
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
-To reproduce the data selection:
-In "CHOISIR DES INDICATEURS", go to DÉMOGRAPHIE, then select:
-- Population municipale (historique depuis 1876) 2021
-- Densité de population (historique depuis 1876) 2021
-In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Intercommunalité-Métropole
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
+reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
+DÉMOGRAPHIE, then select: - Population municipale (historique depuis
+1876) 2021 - Densité de population (historique depuis 1876) 2021 In
+"CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select: -
+Intercommunalité-Métropole
 
 ### INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
-To reproduce the data selection:
-In "CHOISIR DES INDICATEURS", go to REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select:
-- Nb de ménages fiscaux 2021
-- Médiane du niveau de vie 2021
-In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Commune
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
+reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
+REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select: - Nb de ménages
+fiscaux 2021 - Médiane du niveau de vie 2021 In "CHANGER LE DÉCOUPAGE
+GÉOGRAPHIQUE", select: - Commune
 
 ### INSEE_Statistiques_locales_territoires_ville_quartiers.csv
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator
-To reproduce the data selection: In "CHOISIR DES INDICATEURS", go to TERRITOIRES, VILLES ET QUARTIERS, then select:
-- Part des actifs occupés de 15 ans ou plus  les transports en commun 2021
-- Part des ménages ayant au moins 1 voiture 2021
-- Part des actifs occ 15 ans ou plus voiture pour travailler 2021
-- Part des actifs occ 15 ans ou plus vélo pour travailler 2021
-In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Commune
+Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
+reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
+TERRITOIRES, VILLES ET QUARTIERS, then select: - Part des actifs occupés
+de 15 ans ou plus les transports en commun 2021 - Part des ménages ayant
+au moins 1 voiture 2021 - Part des actifs occ 15 ans ou plus voiture
+pour travailler 2021 - Part des actifs occ 15 ans ou plus vélo pour
+travailler 2021 In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select: -
+Commune
 
 ### stops_france.csv.gz
 
@@ -58,7 +55,9 @@ Source: https://www.insee.fr/fr/statistiques/8205896?sommaire=8205966
 
 Source:
 https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter
-To reproduce the data selection: "NAV2B – Population active de 15 ans ou plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et moyen de transport"
+To reproduce the data selection: "NAV2B – Population active de 15 ans ou
+plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et
+moyen de transport"
 
 ## Loading the three final datasets
 
@@ -140,6 +139,7 @@ iltduu_sexe_trans <- vroom(here(local_dir, csv_name))
 ```
 
 ## Importing the local files
+
 ```{r}
 demo <- vroom(here("data", "INSEE_Statistiques_locales_demographie.csv"))
 revenus <- vroom(here("data","INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv"))
@@ -188,7 +188,6 @@ commuting. It provides information on individuals aged 15 and older who
 are employed, with variables describing their household, primary
 residence, and commuting patterns.
 
-
 ```{r}
 # Load required libraries
 library(tibble)
@@ -226,8 +225,6 @@ for (name in names(datasets)) {
   cat("\n")
 }
 ```
-
-
 
 ## Description of the research question
 
@@ -277,7 +274,7 @@ data, and find some drivers of commuter behavior in France and manage to
 generate clear and simple ways to visualize and understand those
 patterns.
 
-## Description of implemented dataset integration
+## Description of dataset inclusion
 
 A first challenge was to try to include large datasets. We wrote code in
 R that ensures files are downloaded, saved, and loaded regardless of the
@@ -297,3 +294,75 @@ Cleaning will include handling missing values and selecting relevant
 variables. Joining will involve combining datasets with different levels
 of aggregation, such as linking geographic data with socio-economic
 indicators. These will be our next steps!
+
+## Description of the main variables
+
+### "Statistiques Locales" Platform by INSEE
+
+#### "Territoires, villes et quartiers" data tab
+
+**“Part des actifs occupés de 15 ans ou plus qui utilisent
+principalement les transports en commun pour aller travailler”**: This
+variable represents the proportion of employed individuals aged 15 and
+older who primarily rely on public transportation for commuting to work
+in 2021. It is categorized by commune.
+
+#### "Démographie" data tab
+
+**"Densité de population"**: This variable represents the population
+density, calculated as the number of inhabitants (municipal count) per
+square kilometer, for each intercommunal area, since 1876.
+
+#### "Développement durable - Environnement" data tab
+
+**"Médiane du niveau de vie"**: This variable represents, across
+communes, the median disposable income per household, calculated by
+dividing the household's total disposable income by the number of
+consumption units. It excludes small zones with fewer than 50 households
+or 100 individuals for statistical confidentiality.
+
+### Experimental dataset from transport.data.gouv.fr
+
+**"stop_name"**: This variable represents the name of a public
+transportation stop, as listed in the experimental dataset from
+transport.data.gouv.fr. Each stop is geolocated using its latitude and
+longitude. The dataset aggregates stops from multiple GTFS files, and
+the stop names are not deduplicated, meaning multiple entries can
+correspond to the same physical stop across different datasets.
+
+### INSEE's December 2020 NAV2B data set
+
+**“TRANS_19”** : This variable categorizes the primary mode of
+transportation used by employed individuals aged 15 years and above for
+commuting, by commune. The modes include walking, cycling, public
+transport, private vehicles (car, van, truck), motorized two-wheelers,
+and no transportation (e.g., work from home).
+
+**“ILTDUU”**: This variable categorizes the commuting pattern of
+individuals based on the urban or rural classification of their
+residence and workplace. The categories include living and working in
+the same rural or urban commune, commuting from a rural area to another
+rural or urban commune, or commuting from an urban area to other urban
+or rural locations.
+
+### INSEE 2024 dataset on professional mobility
+
+**"DEROU"**: This variable represents the number of motorized
+two-wheelers (such as motorcycles or scooters) owned by the household.
+
+**"DIPL"**: This variable indicates the highest level of educational
+qualification achieved by an individual.
+
+**"INPOM"**: This variable provides the count of employed individuals
+within a household.
+
+**"VOIT"**: This variable represents the number of cars owned by the
+household.
+
+**"COMMUNE"**: Refers to the municipality or town of residence or work.
+
+**"ILT"**: Indicates the location of an individual's workplace relative
+to their residence, categorized into five groups: within the same
+municipality, a different municipality in the same department, another
+department in the same region, another region in metropolitan France, or
+outside metropolitan France (including overseas or abroad).
