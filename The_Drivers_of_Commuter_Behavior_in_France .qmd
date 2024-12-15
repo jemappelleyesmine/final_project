@@ -345,7 +345,7 @@ the same rural or urban commune, commuting from a rural area to another
 rural or urban commune, or commuting from an urban area to other urban
 or rural locations.
 
-### INSEE 2024 dataset on professional mobility
+### INSEE's 2024 dataset on professional mobility
 
 **"DEROU"**: This variable represents the number of motorized
 two-wheelers (such as motorcycles or scooters) owned by the household.
