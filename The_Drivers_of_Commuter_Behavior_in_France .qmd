@@ -714,3 +714,95 @@ head(revenus_cleaned)
 ```
 
 ## Validating each data type
+
+**To be reviewed, just wrote the code but need to take the time to render everything**
+```{r}
+# Validate and adjust data types for demo_cleaned
+str(demo_cleaned)  # Check current types
+demo_cleaned <- demo_cleaned %>%
+  mutate(
+    intercommunal_code = as.character(intercommunal_code),
+    intercommunal_label = as.character(intercommunal_label),
+    municipal_population_2021 = as.numeric(municipal_population_2021),
+    population_density_2021 = as.numeric(population_density_2021)
+  )
+
+# Validate and adjust data types for local_mob_cleaned
+str(local_mob_cleaned)
+local_mob_cleaned <- local_mob_cleaned %>%
+  mutate(
+    communal_code = as.character(communal_code),
+    communal_label = as.character(communal_label),
+    share_worker_public_transport = as.numeric(share_worker_public_transport),
+    share_household_car = as.numeric(share_household_car),
+    share_car_for_work = as.numeric(share_car_for_work),
+    share_bike_for_work = as.numeric(share_bike_for_work)
+  )
+
+# Validate and adjust data types for revenus_cleaned
+str(revenus_cleaned)
+revenus_cleaned <- revenus_cleaned %>%
+  mutate(
+    communal_code = as.character(communal_code),
+    communal_label = as.character(communal_label),
+    number_household_2021 = as.numeric(number_household_2021),
+    median_living_standard_2021 = as.numeric(median_living_standard_2021)
+  )
+
+# Validate and adjust data types for iltduu_sexe_trans
+str(iltduu_sexe_trans)
+iltduu_sexe_trans <- iltduu_sexe_trans %>%
+  mutate(
+    nivgeo = as.character(nivgeo),
+    codgeo = as.character(codgeo),
+    libgeo = as.character(libgeo),
+    sexe = as.factor(sexe),
+    trans_19 = as.factor(trans_19),
+    nb = as.numeric(nb)
+  )
+
+# Validate and adjust data types for stops_france
+str(stops_france)
+stops_france <- stops_france %>%
+  mutate(
+    dataset_custom_title = as.character(dataset_custom_title),
+    stop_name = as.character(stop_name),
+    stop_lat = as.numeric(stop_lat),
+    stop_lon = as.numeric(stop_lon)
+  )
+
+# Validate and adjust data types for mob_pro
+str(mob_pro)
+mob_pro <- mob_pro %>%
+  mutate(
+    commune = as.character(commune),
+    tp = as.numeric(tp),
+    trans = as.factor(trans),
+    voit = as.factor(voit)
+    # Add other variables as needed
+  )
+
+# Validate and adjust data types for var_mob_pro
+str(var_mob_pro)
+var_mob_pro <- var_mob_pro %>%
+  mutate(
+    cod_var = as.character(cod_var),
+    lib_var = as.character(lib_var),
+    cod_mod = as.character(cod_mod),
+    lib_mod = as.character(lib_mod),
+    type_var = as.character(type_var),
+    long_var = as.character(long_var)
+  )
+
+# Revalidate all datasets
+list(
+  demo_cleaned = str(demo_cleaned),
+  local_mob_cleaned = str(local_mob_cleaned),
+  revenus_cleaned = str(revenus_cleaned),
+  iltduu_sexe_trans = str(iltduu_sexe_trans),
+  stops_france = str(stops_france),
+  mob_pro = str(mob_pro),
+  var_mob_pro = str(var_mob_pro)
+)
+```
+
