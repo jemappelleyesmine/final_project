@@ -507,3 +507,118 @@ print(summary_missing_cleaned)
 ```
 
 ### Handling missing values of revenus (revenus_cleaned)
+
+```{r}
+# Handling missing values in the revenus dataset
+revenus_cleaned <- revenus %>%
+  mutate(
+    `...2` = ifelse(is.na(`...2`), "Unknown", `...2`),
+    `...3` = ifelse(is.na(`...3`), round(mean(as.numeric(`...3`), na.rm = TRUE)), `...3`),
+    `...4` = ifelse(is.na(`...4`), median(as.numeric(`...4`), na.rm = TRUE), `...4`)
+  )
+
+# Check to confirm no missing values remain
+summary_missing_cleaned <- revenus_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of stops_france (stops_france_cleaned)
+
+```{r}
+# Handling missing values and removing unnecessary columns in stops_france
+stops_france_cleaned <- stops_france %>%
+  select(-dataset_aom_id, -dataset_region_id) %>% # Remove columns with excessive missing values
+  mutate(
+    dataset_organisation = ifelse(is.na(dataset_organisation), "Unknown", dataset_organisation),
+    stop_name = ifelse(is.na(stop_name), "Unnamed Stop", stop_name)
+  )
+
+# Check to confirm no missing values remain
+summary_missing_cleaned <- stops_france_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of mob_pro (mob_pro_cleaned)
+
+```{r}
+# Investigate rows with missing values
+missing_rows <- mob_pro %>%
+  filter(is.na(INEEM) & is.na(INPOM) & is.na(INPSM) & is.na(LPRM) & 
+         is.na(NPERR) & is.na(STOCD) & is.na(TYPL) & is.na(TYPMR) & is.na(VOIT))
+
+# Check the proportion of missing rows
+missing_row_count <- nrow(missing_rows)
+total_row_count <- nrow(mob_pro)
+proportion_missing <- missing_row_count / total_row_count
+
+print(paste("Proportion of rows with all these variables missing:", proportion_missing))
+
+# If the proportion of missing rows is small, remove them
+if (proportion_missing < 0.05) { # Adjust threshold as necessary
+  mob_pro_cleaned <- mob_pro %>%
+    filter(!(is.na(INEEM) & is.na(INPOM) & is.na(INPSM) & is.na(LPRM) & 
+             is.na(NPERR) & is.na(STOCD) & is.na(TYPL) & is.na(TYPMR) & is.na(VOIT)))
+} else {
+  # Otherwise, impute the missing values
+  mob_pro_cleaned <- mob_pro %>%
+    mutate(
+      INEEM = ifelse(is.na(INEEM), "Unknown", INEEM),
+      INPOM = ifelse(is.na(INPOM), "Unknown", INPOM),
+      INPSM = ifelse(is.na(INPSM), "Unknown", INPSM),
+      LPRM = ifelse(is.na(LPRM), "Unknown", LPRM),
+      NPERR = ifelse(is.na(NPERR), "Unknown", NPERR),
+      STOCD = ifelse(is.na(STOCD), "Unknown", STOCD),
+      TYPL = ifelse(is.na(TYPL), "Unknown", TYPL),
+      TYPMR = ifelse(is.na(TYPMR), "Unknown", TYPMR),
+      VOIT = ifelse(is.na(VOIT), "Unknown", VOIT)
+    )
+}
+
+# Check missing values summary after cleaning
+summary_missing_cleaned <- mob_pro_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of var_mob_pro (var_mob_pro_cleaned)
+
+```{r}
+# Investigate rows with missing values
+missing_var_mob_pro <- var_mob_pro %>%
+  filter(is.na(COD_MOD) | is.na(LIB_MOD))
+
+# Print rows with missing values for inspection
+print("Rows with missing values in var_mob_pro:")
+print(missing_var_mob_pro)
+
+# We'll impute missing values with "Unknown"
+var_mob_pro_cleaned <- var_mob_pro %>%
+  mutate(
+    COD_MOD = ifelse(is.na(COD_MOD), "Unknown", COD_MOD),
+    LIB_MOD = ifelse(is.na(LIB_MOD), "Unknown", LIB_MOD)
+  )
+
+# Check for missing values after cleaning
+summary_missing_cleaned <- var_mob_pro_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print("Missing values summary after cleaning:")
+print(summary_missing_cleaned)
+
+```
+
+## Create consistent variable names
+
