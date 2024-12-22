@@ -375,7 +375,6 @@ library(dplyr)
 library(ggplot2)
 ```
 
-
 ```{r}
 # Remove rows where nb is na
 iltduu_sexe_trans <- iltduu_sexe_trans %>%
@@ -386,7 +385,6 @@ iltduu_sexe_trans <- iltduu_sexe_trans %>%
 # checking there are no missing values there
 any(is.na(iltduu_sexe_trans$NB))
 ```
-
 
 ```{r}
 library(dplyr)
@@ -620,5 +618,99 @@ print(summary_missing_cleaned)
 
 ```
 
-## Create consistent variable names
+## Creating consistent variable names
 
+```{r}
+# Load janitor package
+library(janitor)
+
+# List of datasets to clean
+datasets <- list(
+  demo = demo_cleaned,
+  iltduu_sexe_trans = iltduu_sexe_trans,
+  local_mob = local_mob_cleaned,
+  revenus = revenus_cleaned,
+  stops_france = stops_france_cleaned,
+  mob_pro = mob_pro_cleaned,
+  var_mob_pro = var_mob_pro_cleaned
+)
+
+# Apply janitor::clean_names() to each dataset
+datasets_cleaned <- lapply(datasets, clean_names)
+
+# Extract cleaned datasets back into individual variables
+demo_cleaned <- datasets_cleaned$demo
+iltduu_sexe_trans_cleaned <- datasets_cleaned$iltduu_sexe_trans
+local_mob_cleaned <- datasets_cleaned$local_mob
+revenus_cleaned <- datasets_cleaned$revenus
+stops_france_cleaned <- datasets_cleaned$stops_france
+mob_pro_cleaned <- datasets_cleaned$mob_pro
+var_mob_pro_cleaned <- datasets_cleaned$var_mob_pro
+
+# Compare variable names across datasets
+variable_names <- lapply(datasets_cleaned, names)
+print("Variable names in each dataset:")
+print(variable_names)
+
+# Rename variables in demo_cleaned
+demo_cleaned <- demo_cleaned %>%
+  rename(
+    intercommunal_label = x2,
+    municipal_population_2021 = x3,
+    population_density_2021 = x4,
+    intercommunal_code = insee_statistiques_locales
+  )
+
+# Rename variables in local_mob_cleaned
+local_mob_cleaned <- local_mob_cleaned %>%
+  rename(
+    communal_label = x2,
+    share_worker_public_transport = x3,
+    share_household_car = x4,
+    share_car_for_work = x5,
+    share_bike_for_work = x6,
+    communal_code = insee_statistiques_locales
+  )
+
+# Rename variables in revenus_cleaned
+revenus_cleaned <- revenus_cleaned %>%
+  rename(
+    communal_label = x2,
+    number_household_2021 = x3,
+    median_living_standard_2021 = x4,
+    communal_code = insee_statistiques_locales
+  )
+
+# Rename variables in mob_pro_cleaned
+revenus_cleaned <- revenus_cleaned %>%
+  rename(
+    commune = communal_code
+  )
+
+# Verify the renamed variables
+list(
+  demo_cleaned = names(demo_cleaned),
+  local_mob_cleaned = names(local_mob_cleaned),
+  revenus_cleaned = names(revenus_cleaned)
+)
+```
+
+**WE NEED TO DO SOME MORE DIGGING FOR MOB_PRO_CLEANED (see if some variable names
+should be the same as for other datasets), but the data set is so big
+to visualize :( need to spend some time on this specifically!**
+
+## Removing the descriptive meta data
+
+```{r}
+# Remove first two rows for demo_cleaned, local_mob_cleaned, and revenus_cleaned
+demo_cleaned <- demo_cleaned[-c(1, 2), ]
+local_mob_cleaned <- local_mob_cleaned[-c(1, 2), ]
+revenus_cleaned <- revenus_cleaned[-c(1, 2), ]
+
+# Preview the updated datasets
+head(demo_cleaned)
+head(local_mob_cleaned)
+head(revenus_cleaned)
+```
+
+## Validating each data type
