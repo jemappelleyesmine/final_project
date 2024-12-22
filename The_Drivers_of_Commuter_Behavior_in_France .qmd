@@ -419,3 +419,41 @@ ggplot(trans_19_summary, aes(x = Mode, y = Count, fill = Mode)) +
 ```
 
 # Data Cleaning
+
+## Identify and handle missing values
+
+### Checking for missing values
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+# Create a function to summarize missing values
+summarize_missing <- function(dataset) {
+  missing_summary <- dataset %>%
+    summarise(across(everything(), ~ sum(is.na(.)))) %>%
+    pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+  
+  return(missing_summary)
+}
+
+# Apply the function to each dataset
+datasets <- list(
+  demo = demo,
+  iltduu_sexe_trans = iltduu_sexe_trans,
+  local_mob = local_mob,
+  revenus = revenus,
+  stops_france = stops_france,
+  mob_pro = mob_pro,
+  var_mob_pro = var_mob_pro
+)
+
+missing_values_summary <- lapply(datasets, summarize_missing)
+
+# Print summary for each dataset
+for (name in names(missing_values_summary)) {
+  cat("\n### Missing Value Summary for Dataset:", name, "\n")
+  print(missing_values_summary[[name]])
+}
+```
+
