@@ -480,4 +480,30 @@ summary_missing_cleaned <- demo_cleaned %>%
 print(summary_missing_cleaned)
 ```
 
-### Handling missing values of iltduu_sexe_trans
+### Handling missing values of local_mob (local_mob_cleaned)
+
+```{r}
+# Handling missing values in local_mob
+local_mob_cleaned <- local_mob %>%
+  mutate(
+    # Replace missing values in categorical columns with "Unknown"
+    `Insee - Statistiques locales` = ifelse(is.na(`Insee - Statistiques locales`), "Unknown", `Insee - Statistiques locales`),
+    `...2` = ifelse(is.na(`...2`), "Unknown", `...2`),
+    
+    # Replace missing values in numeric columns with the column mean
+    `...3` = ifelse(is.na(`...3`), mean(as.numeric(`...3`), na.rm = TRUE), `...3`),
+    `...4` = ifelse(is.na(`...4`), mean(as.numeric(`...4`), na.rm = TRUE), `...4`),
+    `...5` = ifelse(is.na(`...5`), mean(as.numeric(`...5`), na.rm = TRUE), `...5`),
+    `...6` = ifelse(is.na(`...6`), mean(as.numeric(`...6`), na.rm = TRUE), `...6`)
+  )
+
+# Check to confirm no missing values remain
+summary_missing_cleaned <- local_mob_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of revenus (revenus_cleaned)
