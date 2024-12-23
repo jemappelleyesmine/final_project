@@ -684,7 +684,49 @@ revenus_cleaned <- revenus_cleaned %>%
 # Rename variables in mob_pro_cleaned
 mob_pro_cleaned <- mob_pro_cleaned %>%
   rename(
-    communal_code = commune
+    communal_code = commune, # communal code for place of residency
+    residency_district = arm, # districts (arrondissement) of residency are just for paris, lyon, marseille (if not, just       ZZZZZ)
+    workplace_abroad_communal_code = dcflt, # if working abroad only (99999 if working in France, ZZZZZ if not applicable).       AL for Germany, BE for Belgium, LU for Luxembourg, SU for Swtizerland
+    workplace_communal_code = dclt,
+    age_five_year_slice = agerevq, # five year age in completed years (by slices of 5, from 000 - 0 to 4yo to 120 - 120 yo)
+    socio_professional_cat = cs1, # 8 types of socio professional categories (1 through 8)
+    nb_household_two_wheelers = derou, # 0 to 3, with 3 being 3 and more, U is for "hors logement ordinaire                 (DOM/métropolitaine", X is "logement ordinaire innocupé (DOM)", Z is for "logement ordinaire (métropolitaine)
+    highest_qualification = dipl, # from 01 (nothing) to 19 (non medical PhD), ZZ are for not applicable (less than 14yo)
+    employment_condition = empl, # from 11 (apprenticeship) to 23 (familial aide), with ZZ for without object
+    workplace_indicator = ilt, # from 1 (in residency commune) to 7 (abroad), Z is without object
+    urban_workplace_indicator = iltuu, # from 1 (works in rural residency commune) to 5 (works away from urban residency         commune), Z is without object
+    immigration_status = immi, # 1 is immigrant, 2 is non immigrant
+    nationality = inatc, # 1 is French, 2 is non french
+    nb_students_trainee_over_14_household = ineem, # number, Y means hors résidence principale, Z means hors logement ordinaire
+    nb_employed_people_household = inpom, # number, Y and Z means the same as above
+    nb_scolarised_people_household = inpsm, # number, Y and Z means the same as above
+    weight = ipondi, # in decimal weight
+    link_household_reference_person = lprm, # from 1 (reference person of the household) to 9 (housemaid living in household), Z meaning "hors logement ordinaire"
+    metrodom_indicator = metrodom, # M for metropolitan france, D for DOM
+    cohabitation_mode = moco, # 8 types defined by a number (for example: 11 is children from couple)
+    economic_activity = na5, # 5 types of role depending on the field (example: FZ is construction), ZZ is without object
+    number_people_household = nperr, # from 1 to 6 (6 being 6 or more), Z is for hors logement ordinaire
+    region_residency = region, 
+    region_workplace = reglt, ## 99 for abroad, ZZ for outre-mer, YY for without object
+    sexe = sexe, # 1 is for male (of course) and 2 for female
+    professional_status = stat, # 4 categories (for example 10 is salaried employee), ZZ is without object
+    occupancy_status_accomodation = stocd, # 6 types (for example 10 is landlord), ZZ is hors logement ordinaire
+    working_time = tp, # 1 for full time, 2 for part time employment, Z for without object
+    main_transportation_work = trans, # 6 types (for example 1 is no transport), Z is without object
+    accomodation_type = typl, # 6 types (for ex 1 is house) Z is without object
+    type_of_household = typmr, # 9 types (for ex 11 is a man living alone), ZZ for hors logement ordinaire
+    number_car_household = voit # 0 to 3 (3 being 3 cars or more), X for logement ordinaire innocupé, Z for hors logement ordinaire
+  )
+
+# Rename variables in iltduu_sexe_trans_cleaned
+iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
+  rename(
+   sexe = sexe,
+   main_transportation_work = trans_19,
+   urban_workplace_indicator = iltduu,
+   communal_code = codgeo,
+   communal_label = libgeo
+   # We have to look at what nivgeo and nb are more specifically before renaming them. 
   )
 
 # Verify the renamed variables
@@ -712,6 +754,24 @@ head(demo_cleaned)
 head(local_mob_cleaned)
 head(revenus_cleaned)
 ```
+
+## Removing the columns we won't need in mob_pro_cleaned (to be done together)
+
+There are way too many variables in mob_pro_cleaned (32), surely we should not need all of them to conduct our analysis:
+```{r}
+#library(dplyr)
+
+# If we just want to specify the ones we want to keep:
+#mob_pro_cleaned <- mob_pro_cleaned %>%
+  #select(column_name_1, column_name_2, column_name_4) # Replace with the names of the columns you want to keep
+
+# If we want to specify the ones we want to remove:
+#mob_pro_cleaned <- mob_pro_cleaned %>%
+  #select(-column_name_1, -column_name_2, -column_name_3) # Replace with the actual column names
+
+#colnames(mob_pro_cleaned)
+```
+
 
 ## Validating each data type
 
@@ -775,10 +835,7 @@ str(mob_pro)
 mob_pro_cleaned <- mob_pro_cleaned %>%
   mutate(
     communal_code = as.character(communal_code),
-    tp = as.numeric(tp),
-    trans = as.factor(trans),
-    voit = as.factor(voit)
-    # Add other variables as needed
+    # We need to add all the variables here
   )
 
 # Validate and adjust data types for var_mob_pro_cleaned
