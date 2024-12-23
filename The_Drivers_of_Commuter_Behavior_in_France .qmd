@@ -748,7 +748,7 @@ revenus_cleaned <- revenus_cleaned %>%
     median_living_standard_2021 = as.numeric(median_living_standard_2021)
   )
 
-# Validate and adjust data types for iltduu_sexe_trans
+# Validate and adjust data types for iltduu_sexe_trans_cleaned
 str(iltduu_sexe_trans)
 iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
   mutate(
@@ -760,7 +760,7 @@ iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
     nb = as.numeric(nb)
   )
 
-# Validate and adjust data types for stops_france
+# Validate and adjust data types for stops_france_cleaned
 str(stops_france)
 stops_france <- stops_france %>%
   mutate(
@@ -770,7 +770,7 @@ stops_france <- stops_france %>%
     stop_lon = as.numeric(stop_lon)
   )
 
-# Validate and adjust data types for mob_pro
+# Validate and adjust data types for mob_pro_cleaned
 str(mob_pro)
 mob_pro_cleaned <- mob_pro_cleaned %>%
   mutate(
@@ -781,7 +781,7 @@ mob_pro_cleaned <- mob_pro_cleaned %>%
     # Add other variables as needed
   )
 
-# Validate and adjust data types for var_mob_pro
+# Validate and adjust data types for var_mob_pro_cleaned
 str(var_mob_pro)
 var_mob_pro_cleaned <- var_mob_pro_cleaned %>%
   mutate(
@@ -798,10 +798,10 @@ list(
   demo_cleaned = str(demo_cleaned),
   local_mob_cleaned = str(local_mob_cleaned),
   revenus_cleaned = str(revenus_cleaned),
-  iltduu_sexe_trans = str(iltduu_sexe_trans),
-  stops_france = str(stops_france),
-  mob_pro = str(mob_pro),
-  var_mob_pro = str(var_mob_pro)
+  iltduu_sexe_trans_cleaned = str(iltduu_sexe_trans),
+  stops_france_cleaned = str(stops_france),
+  mob_pro_cleaned = str(mob_pro),
+  var_mob_pro_cleaned = str(var_mob_pro)
 )
 ```
 
