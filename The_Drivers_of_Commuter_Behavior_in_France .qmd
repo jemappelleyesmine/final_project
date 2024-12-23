@@ -654,37 +654,37 @@ print(variable_names)
 
 # Rename variables in demo_cleaned
 demo_cleaned <- demo_cleaned %>%
-  rename(
-    intercommunal_label = x2,
-    municipal_population_2021 = x3,
-    population_density_2021 = x4,
-    intercommunal_code = insee_statistiques_locales
-  )
+ rename(
+  intercommunal_label = x2,
+  municipal_population_2021 = x3,
+  population_density_2021 = x4,
+  intercommunal_code = insee_statistiques_locales
+ )
 
 # Rename variables in local_mob_cleaned
 local_mob_cleaned <- local_mob_cleaned %>%
   rename(
-    communal_label = x2,
-    share_worker_public_transport = x3,
-    share_household_car = x4,
-    share_car_for_work = x5,
-    share_bike_for_work = x6,
-    communal_code = insee_statistiques_locales
+   communal_label = x2,
+   share_worker_public_transport = x3,
+   share_household_car = x4,
+   share_car_for_work = x5,
+   share_bike_for_work = x6,
+   communal_code = insee_statistiques_locales
   )
 
 # Rename variables in revenus_cleaned
 revenus_cleaned <- revenus_cleaned %>%
   rename(
-    communal_label = x2,
-    number_household_2021 = x3,
-    median_living_standard_2021 = x4,
-    communal_code = insee_statistiques_locales
+   communal_code = insee_statistiques_locales,
+   communal_label = x2,
+   number_household_2021 = x3,
+   median_living_standard_2021 = x4,
   )
 
 # Rename variables in mob_pro_cleaned
-revenus_cleaned <- revenus_cleaned %>%
+mob_pro_cleaned <- mob_pro_cleaned %>%
   rename(
-    commune = communal_code
+    communal_code = commune
   )
 
 # Verify the renamed variables
@@ -715,7 +715,6 @@ head(revenus_cleaned)
 
 ## Validating each data type
 
-**To be reviewed, just wrote the code but need to take the time to render everything**
 ```{r}
 # Validate and adjust data types for demo_cleaned
 str(demo_cleaned)  # Check current types
@@ -751,7 +750,7 @@ revenus_cleaned <- revenus_cleaned %>%
 
 # Validate and adjust data types for iltduu_sexe_trans
 str(iltduu_sexe_trans)
-iltduu_sexe_trans <- iltduu_sexe_trans %>%
+iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
   mutate(
     nivgeo = as.character(nivgeo),
     codgeo = as.character(codgeo),
@@ -773,9 +772,9 @@ stops_france <- stops_france %>%
 
 # Validate and adjust data types for mob_pro
 str(mob_pro)
-mob_pro <- mob_pro %>%
+mob_pro_cleaned <- mob_pro_cleaned %>%
   mutate(
-    commune = as.character(commune),
+    communal_code = as.character(communal_code),
     tp = as.numeric(tp),
     trans = as.factor(trans),
     voit = as.factor(voit)
@@ -784,7 +783,7 @@ mob_pro <- mob_pro %>%
 
 # Validate and adjust data types for var_mob_pro
 str(var_mob_pro)
-var_mob_pro <- var_mob_pro %>%
+var_mob_pro_cleaned <- var_mob_pro_cleaned %>%
   mutate(
     cod_var = as.character(cod_var),
     lib_var = as.character(lib_var),
