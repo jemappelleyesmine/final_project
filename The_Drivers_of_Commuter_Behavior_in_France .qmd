@@ -851,7 +851,7 @@ mob_pro_cleaned <- mob_pro_cleaned %>%
     economic_activity = as.factor(economic_activity),
     number_people_household = as.numeric(number_people_household),
     region_residency = as.character(region_residency),
-    region_workplace = as.character(region_worplace),
+    region_workplace = as.character(region_workplace),
     sexe = as.factor(sexe),
     professional_status = as.factor(professional_status),
     occupancy_status_accomodation = as.factor(occupancy_status_accomodation),
@@ -886,7 +886,7 @@ list(
 )
 ```
 
-## Creating consistent observation names
+## Creating consistent observation names / give labels to factors for easier identification
 
 ```{r}
 
@@ -895,7 +895,34 @@ list(
 ## Removing duplicates
 
 ```{r}
+library(dplyr)
 
+# Store initial row counts
+initial_rows <- sapply(list(
+  stops_france_cleaned
+), nrow)
+
+# Stops France dataset
+stops_france_cleaned <- stops_france_cleaned %>% 
+  distinct()
+cat("Stops France: Removed", nrow(stops_france) - nrow(stops_france_cleaned), "duplicate rows.\n")
+
+# Store final row counts
+final_rows <- sapply(list(
+  stops_france_cleaned
+), nrow)
+
+# Summarize row changes
+datasets <- c("Stops France")
+row_summary <- data.frame(
+  Dataset = datasets,
+  Initial_Rows = initial_rows,
+  Final_Rows = final_rows,
+  Duplicates_Removed = initial_rows - final_rows
+)
+
+# Print the summary
+print(row_summary)
 ```
 
 ## Filtering and selecting relevant columns
@@ -903,6 +930,7 @@ list(
 ```{r}
 
 ```
+
 
 # Data Joining
 
