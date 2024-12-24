@@ -759,17 +759,17 @@ head(revenus_cleaned)
 
 There are way too many variables in mob_pro_cleaned (32), surely we should not need all of them to conduct our analysis:
 ```{r}
-#library(dplyr)
+library(dplyr)
 
 # If we just want to specify the ones we want to keep:
 #mob_pro_cleaned <- mob_pro_cleaned %>%
   #select(column_name_1, column_name_2, column_name_4) # Replace with the names of the columns you want to keep
 
 # If we want to specify the ones we want to remove:
-#mob_pro_cleaned <- mob_pro_cleaned %>%
-  #select(-column_name_1, -column_name_2, -column_name_3) # Replace with the actual column names
+mob_pro_cleaned <- mob_pro_cleaned %>%
+  select(-immigration_status, -nationality, -nb_students_trainee_over_14_household, -weight, -link_household_reference_person, -cohabitation_mode, -nb_employed_people_household, -nb_scolarised_people_household, ) # Replace with the actual column names
 
-#colnames(mob_pro_cleaned)
+colnames(mob_pro_cleaned)
 ```
 
 
