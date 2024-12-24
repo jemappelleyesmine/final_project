@@ -888,6 +888,24 @@ list(
 
 ## Creating consistent observation names / give labels to factors for easier identification
 
+Step 1: Assign Labels to Factors
+
+Purpose: Replace numeric or cryptic factor levels with meaningful labels.
+
+Approach:
+Use the factor() function to assign labels to existing levels.
+Example: Replace 1, 2, 3 with "Urban", "Suburban", "Rural".
+
+Step 2: Determine Whether Factors Should Be Ordered
+
+Purpose: For ordinal factors (e.g., education level, income bracket), establish a natural order.
+
+Approach:
+Use the factor() function with the ordered = TRUE argument.
+Example: For education levels, "Primary" < "Secondary" < "Tertiary".
+
+### Demo Dataset
+
 ```{r}
 
 ```
@@ -983,6 +1001,13 @@ etc.
 ```{r}
 
 ```
+
+Explanation
+select(): Retains only the columns specified in the parentheses.
+filter(): Removes rows based on logical conditions.
+Example: Exclude rows where commute_mode is not a recognized value.
+Customization:
+Replace placeholders like commute_mode and median_living_standard with column names and values relevant to your datasets.
 
 # Data Joining
 
