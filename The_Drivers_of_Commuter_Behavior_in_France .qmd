@@ -756,21 +756,29 @@ head(local_mob_cleaned)
 head(revenus_cleaned)
 ```
 
-## Removing the columns we won't need in mob_pro_cleaned
+## Removing the columns we won't need 
+
+### in mob_pro_cleaned
 
 There are way too many variables in mob_pro_cleaned (32), surely we should not need all of them to conduct our analysis:
 ```{r}
 library(dplyr)
 
-# If we just want to specify the ones we want to keep:
-#mob_pro_cleaned <- mob_pro_cleaned %>%
-  #select(column_name_1, column_name_2, column_name_4) # Replace with the names of the columns you want to keep
-
 # If we want to specify the ones we want to remove:
 mob_pro_cleaned <- mob_pro_cleaned %>%
-  select(-immigration_status, -nationality, -nb_students_trainee_over_14_household, -weight, -link_household_reference_person, -cohabitation_mode, -nb_employed_people_household, -nb_scolarised_people_household, - residency_district) # Replace with the actual column names
+  select(-immigration_status, -nationality, -nb_students_trainee_over_14_household, -weight, -link_household_reference_person, -cohabitation_mode, -nb_employed_people_household, -nb_scolarised_people_household, - residency_district) 
 
 colnames(mob_pro_cleaned)
+```
+
+### in stops_france
+
+```{r}
+# If we just want to specify the ones we want to keep:
+stops_france_cleaned <- stops_france_cleaned %>%
+  select(dataset_custom_title, dataset_organisation, stop_id, stop_name, stop_lat, stop_lon) 
+
+colnames(stops_france_cleaned)
 ```
 
 
@@ -828,6 +836,8 @@ str(stops_france)
 stops_france <- stops_france %>%
   mutate(
     dataset_custom_title = as.character(dataset_custom_title),
+    dataset_organisation = as.character(dataset_organisation),
+    stop_id = as.character(stop_id),
     stop_name = as.character(stop_name),
     stop_lat = as.numeric(stop_lat),
     stop_lon = as.numeric(stop_lon)
@@ -904,10 +914,167 @@ Approach:
 Use the factor() function with the ordered = TRUE argument.
 Example: For education levels, "Primary" < "Secondary" < "Tertiary".
 
-### Demo Dataset
+### Iltduu Sexe Trans Dataset
 
 ```{r}
+iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
+  mutate(
+    geographical_type = factor(
+      geographical_type,
+      levels = c("COM", "ARM"),
+      labels = c("Commune", "Municipal District")
+    ),
+    sexe = factor(
+      sexe,
+      levels = c(1, 2),
+      labels = c("Male", "Female")
+    ),
+    main_transportation_work = factor(
+      main_transportation_work,
+      levels = c(1, 2, 3, 4, 5, 6),
+      labels = c(
+        "No Transport", "On Foot", "Bicycle", 
+        "Motorized Two Wheelers", "Car, Truck, Van", "Public Transport"
+      )
+    ),
+    urban_workplace_indicator = factor(
+      urban_workplace_indicator,
+      levels = c(1, 2, 3, 4, 5),
+      labels = c(
+        "Rural: Same Commune", 
+        "Rural: Different Commune", 
+        "Urban: Same Municipality", 
+        "Urban: Same Urban Unit", 
+        "Urban: Outside Urban Unit"
+      )
+    )
+  )
+```
 
+### Mob Pro Dataset
+
+```{r}
+mob_pro_cleaned <- mob_pro_cleaned %>%
+  mutate(
+    age_five_year_slice = factor(
+      age_five_year_slice,
+      levels = c("000", "005", "010", "015", "020", "025", "030", "035", "040", "045", 
+                 "050", "055", "060", "065", "070", "075", "080", "085", "090", "095", 
+                 "100", "105", "110", "115", "120"),
+      labels = c("0-4 years", "5-9 years", "10-14 years", "15-19 years", "20-24 years", 
+                 "25-29 years", "30-34 years", "35-39 years", "40-44 years", "45-49 years", 
+                 "50-54 years", "55-59 years", "60-64 years", "65-69 years", "70-74 years", 
+                 "75-79 years", "80-84 years", "85-89 years", "90-94 years", "95-99 years", 
+                 "100-104 years", "105-109 years", "110-114 years", "115-119 years", "120+ years"),
+      ordered = TRUE
+    ),
+    socio_professional_cat = factor(
+      socio_professional_cat,
+      levels = c(1, 2, 3, 4, 5, 6, 7, 8),
+      labels = c("Agriculteurs exploitants", "Artisans", "Cadres", 
+                 "Professions Intermédiaires", "Employés", "Ouvriers", "Retraités", "Autres"),
+      ordered = FALSE
+    ),
+    highest_qualification = factor(
+      highest_qualification,
+      levels = c("01", "02", "03", "11", "12", "13", "14", "15", "16", "17", "18", "19", "ZZ"),
+      labels = c("No schooling", "Primary or lower", "Secondary or higher", "CEP", "BEPC", 
+                 "CAP/BEP", "General Bac", "Professional Bac", "BTS/DUT", 
+                 "Bachelor", "Master", "Doctorate", "Not Applicable"),
+      ordered = TRUE
+    ),
+    employment_condition = factor(
+      employment_condition,
+      levels = c("11", "12", "13", "14", "15", "16", "21", "22", "23", "ZZ"),
+      labels = c("Apprenticeship", "Temporary Agency", "Supported Jobs", "Interns", 
+                 "Limited Term", "Unlimited Term", "Independent", "Employers", "Family Aids", 
+                 "Not Applicable"),
+      ordered = FALSE
+    ),
+    workplace_indicator = factor(
+      workplace_indicator,
+      levels = c(1, 2, 3, 4, 5, 6, 7, "Z"),
+      labels = c("Within Residence Commune", "Other Commune (Same Dept.)", 
+                 "Other Dept. (Same Region)", "Outside Region: Metropole", 
+                 "Outside Region: DOM", "Outside Region: COM", "Abroad", "Not Applicable"),
+      ordered = TRUE
+    ),
+    urban_workplace_indicator = factor(
+      urban_workplace_indicator,
+      levels = c(1, 2, 3, 4, 5, "Z"),
+      labels = c("Rural: Same Commune", "Rural: Outside Commune", 
+                 "Urban: Same Commune", "Urban: Same Urban Unit", 
+                 "Urban: Outside Urban Unit", "Not Applicable"),
+      ordered = TRUE
+    ),
+    metrodom_indicator = factor(
+      metrodom_indicator,
+      levels = c("M", "D"),
+      labels = c("Metropolitan France", "DOM"),
+      ordered = FALSE
+    ),
+    economic_activity = factor(
+      economic_activity,
+      levels = c("AZ", "BE", "FZ", "GU", "OQ", "ZZ"),
+      labels = c("Agriculture", "Industry", "Construction", 
+                 "Commerce/Transport/Services", 
+                 "Public Admin/Education/Health", "Not Applicable"),
+      ordered = FALSE
+    ),
+    sexe = factor(
+      sexe,
+      levels = c(1, 2),
+      labels = c("Male", "Female"),
+      ordered = FALSE
+    ),
+    professional_status = factor(
+      professional_status,
+      levels = c(10, 21, 22, 23, "ZZ"),
+      labels = c("Salaried", "Independent", "Employers", 
+                 "Family Aids", "Not Applicable"),
+      ordered = FALSE
+    ),
+    occupancy_status_accomodation = factor(
+      occupancy_status_accomodation,
+      levels = c("00", "10", "21", "22", "23", "30", "ZZ"),
+      labels = c("Unoccupied", "Owner", "Renter (Private Non-HLM)", 
+                 "Renter (HLM)", "Renter (Furnished/Hotel)", 
+                 "Free Lodging", "Not Applicable"),
+      ordered = FALSE
+    ),
+    working_time = factor(
+      working_time,
+      levels = c(1, 2, "Z"),
+      labels = c("Full-time", "Part-time", "Not Applicable"),
+      ordered = FALSE
+    ),
+    main_transportation_work = factor(
+      main_transportation_work,
+      levels = c(1, 2, 3, 4, 5, 6, "Z"),
+      labels = c("No Transport", "On Foot", "Bicycle", 
+                 "Motorized Two-Wheelers", "Car/Truck/Van", 
+                 "Public Transport", "Not Applicable"),
+      ordered = FALSE
+    ),
+    accomodation_type = factor(
+      accomodation_type,
+      levels = c(1, 2, 3, 4, 5, 6, "Z"),
+      labels = c("House", "Apartment", "Foyer", "Hotel Room", 
+                 "Improvised Housing", "Independent Room", 
+                 "Not Applicable"),
+      ordered = FALSE
+    ),
+    type_of_household = factor(
+      type_of_household,
+      levels = c("11", "12", "20", "31", "32", "41", "42", "43", "44", "ZZ"),
+      labels = c("Single Male", "Single Female", "Multiple Persons (No Family)", 
+                 "Single Parent (Male)", "Single Parent (Female)", 
+                 "Couple (Two Working)", "Couple (Male Working)", 
+                 "Couple (Female Working)", "Couple (Both Non-working)", 
+                 "Not Applicable"),
+      ordered = FALSE
+    )
+  )
 ```
 
 ## Removing duplicates
