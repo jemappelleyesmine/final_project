@@ -47,3 +47,8 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Ignore large files
+data/FD_MOBPRO_2021.csv
+data/stops_france.csv.gz
+data/RP2021_mobpro.zip

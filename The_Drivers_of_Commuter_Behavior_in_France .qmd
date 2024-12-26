@@ -379,7 +379,6 @@ library(dplyr)
 library(ggplot2)
 ```
 
-
 ```{r}
 # Remove rows where nb is na
 iltduu_sexe_trans <- iltduu_sexe_trans %>%
@@ -390,7 +389,6 @@ iltduu_sexe_trans <- iltduu_sexe_trans %>%
 # checking there are no missing values there
 any(is.na(iltduu_sexe_trans$NB))
 ```
-
 
 ```{r}
 library(dplyr)
@@ -421,4 +419,766 @@ ggplot(trans_19_summary, aes(x = Mode, y = Count, fill = Mode)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
+
+# Data Cleaning
+
+## Identify and handle missing values
+
+### Checking for missing values
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+# Create a function to summarize missing values
+summarize_missing <- function(dataset) {
+  missing_summary <- dataset %>%
+    summarise(across(everything(), ~ sum(is.na(.)))) %>%
+    pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+  
+  return(missing_summary)
+}
+
+# Apply the function to each dataset
+datasets <- list(
+  demo = demo,
+  iltduu_sexe_trans = iltduu_sexe_trans,
+  local_mob = local_mob,
+  revenus = revenus,
+  stops_france = stops_france,
+  mob_pro = mob_pro,
+  var_mob_pro = var_mob_pro
+)
+
+missing_values_summary <- lapply(datasets, summarize_missing)
+
+# Print summary for each dataset
+for (name in names(missing_values_summary)) {
+  cat("\n### Missing Value Summary for Dataset:", name, "\n")
+  print(missing_values_summary[[name]])
+}
+```
+
+### Handling missing values of demo (demo_cleaned)
+
+```{r}
+library(dplyr)
+
+# Handle missing values in 'demo'
+demo_cleaned <- demo %>%
+  # Replace missing values in columns (impute with placeholder "Unknown")
+  mutate(
+    `...2` = ifelse(is.na(`...2`), "Unknown", `...2`),
+    `...3` = ifelse(is.na(`...3`), "Unknown", `...3`),
+    `...4` = ifelse(is.na(`...4`), "Unknown", `...4`)
+  )
+
+# Check to confirm no missing values remain
+summary_missing_cleaned <- demo_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of local_mob (local_mob_cleaned)
+
+```{r}
+# Handling missing values in local_mob
+local_mob_cleaned <- local_mob %>%
+  mutate(
+    # Replace missing values in categorical columns with "Unknown"
+    `Insee - Statistiques locales` = ifelse(is.na(`Insee - Statistiques locales`), "Unknown", `Insee - Statistiques locales`),
+    `...2` = ifelse(is.na(`...2`), "Unknown", `...2`),
+    
+    # Replace missing values in numeric columns with the column mean
+    `...3` = ifelse(is.na(`...3`), mean(as.numeric(`...3`), na.rm = TRUE), `...3`),
+    `...4` = ifelse(is.na(`...4`), mean(as.numeric(`...4`), na.rm = TRUE), `...4`),
+    `...5` = ifelse(is.na(`...5`), mean(as.numeric(`...5`), na.rm = TRUE), `...5`),
+    `...6` = ifelse(is.na(`...6`), mean(as.numeric(`...6`), na.rm = TRUE), `...6`)
+  )
+
+# Check to confirm no missing values remain
+summary_missing_cleaned <- local_mob_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of revenus (revenus_cleaned)
+
+```{r}
+# Handling missing values in the revenus dataset
+revenus_cleaned <- revenus %>%
+  mutate(
+    `...2` = ifelse(is.na(`...2`), "Unknown", `...2`),
+    `...3` = ifelse(is.na(`...3`), round(mean(as.numeric(`...3`), na.rm = TRUE)), `...3`),
+    `...4` = ifelse(is.na(`...4`), median(as.numeric(`...4`), na.rm = TRUE), `...4`)
+  )
+
+# Check to confirm no missing values remain
+summary_missing_cleaned <- revenus_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of stops_france (stops_france_cleaned)
+
+```{r}
+# Handling missing values and removing unnecessary columns in stops_france
+stops_france_cleaned <- stops_france %>%
+  select(-dataset_aom_id, -dataset_region_id) %>% # Remove columns with excessive missing values
+  mutate(
+    dataset_organisation = ifelse(is.na(dataset_organisation), "Unknown", dataset_organisation),
+    stop_name = ifelse(is.na(stop_name), "Unnamed Stop", stop_name)
+  )
+
+# Check to confirm no missing values remain
+summary_missing_cleaned <- stops_france_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of mob_pro (mob_pro_cleaned)
+
+```{r}
+# Investigate rows with missing values
+missing_rows <- mob_pro %>%
+  filter(is.na(INEEM) & is.na(INPOM) & is.na(INPSM) & is.na(LPRM) & 
+         is.na(NPERR) & is.na(STOCD) & is.na(TYPL) & is.na(TYPMR) & is.na(VOIT))
+
+# Check the proportion of missing rows
+missing_row_count <- nrow(missing_rows)
+total_row_count <- nrow(mob_pro)
+proportion_missing <- missing_row_count / total_row_count
+
+print(paste("Proportion of rows with all these variables missing:", proportion_missing))
+
+# If the proportion of missing rows is small, remove them
+if (proportion_missing < 0.05) { # Adjust threshold as necessary
+  mob_pro_cleaned <- mob_pro %>%
+    filter(!(is.na(INEEM) & is.na(INPOM) & is.na(INPSM) & is.na(LPRM) & 
+             is.na(NPERR) & is.na(STOCD) & is.na(TYPL) & is.na(TYPMR) & is.na(VOIT)))
+} else {
+  # Otherwise, impute the missing values
+  mob_pro_cleaned <- mob_pro %>%
+    mutate(
+      INEEM = ifelse(is.na(INEEM), "Unknown", INEEM),
+      INPOM = ifelse(is.na(INPOM), "Unknown", INPOM),
+      INPSM = ifelse(is.na(INPSM), "Unknown", INPSM),
+      LPRM = ifelse(is.na(LPRM), "Unknown", LPRM),
+      NPERR = ifelse(is.na(NPERR), "Unknown", NPERR),
+      STOCD = ifelse(is.na(STOCD), "Unknown", STOCD),
+      TYPL = ifelse(is.na(TYPL), "Unknown", TYPL),
+      TYPMR = ifelse(is.na(TYPMR), "Unknown", TYPMR),
+      VOIT = ifelse(is.na(VOIT), "Unknown", VOIT)
+    )
+}
+
+# Check missing values summary after cleaning
+summary_missing_cleaned <- mob_pro_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print(summary_missing_cleaned)
+```
+
+### Handling missing values of var_mob_pro (var_mob_pro_cleaned)
+
+```{r}
+# Investigate rows with missing values
+missing_var_mob_pro <- var_mob_pro %>%
+  filter(is.na(COD_MOD) | is.na(LIB_MOD))
+
+# Print rows with missing values for inspection
+print("Rows with missing values in var_mob_pro:")
+print(missing_var_mob_pro)
+
+# We'll impute missing values with "Unknown"
+var_mob_pro_cleaned <- var_mob_pro %>%
+  mutate(
+    COD_MOD = ifelse(is.na(COD_MOD), "Unknown", COD_MOD),
+    LIB_MOD = ifelse(is.na(LIB_MOD), "Unknown", LIB_MOD)
+  )
+
+# Check for missing values after cleaning
+summary_missing_cleaned <- var_mob_pro_cleaned %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+# Print cleaned dataset summary
+print("Missing values summary after cleaning:")
+print(summary_missing_cleaned)
+
+```
+
+## Creating consistent variable names
+
+```{r}
+# Load janitor package
+library(janitor)
+
+# List of datasets to clean
+datasets <- list(
+  demo = demo_cleaned,
+  iltduu_sexe_trans = iltduu_sexe_trans,
+  local_mob = local_mob_cleaned,
+  revenus = revenus_cleaned,
+  stops_france = stops_france_cleaned,
+  mob_pro = mob_pro_cleaned,
+  var_mob_pro = var_mob_pro_cleaned
+)
+
+# Apply janitor::clean_names() to each dataset
+datasets_cleaned <- lapply(datasets, clean_names)
+
+# Extract cleaned datasets back into individual variables
+demo_cleaned <- datasets_cleaned$demo
+iltduu_sexe_trans_cleaned <- datasets_cleaned$iltduu_sexe_trans
+local_mob_cleaned <- datasets_cleaned$local_mob
+revenus_cleaned <- datasets_cleaned$revenus
+stops_france_cleaned <- datasets_cleaned$stops_france
+mob_pro_cleaned <- datasets_cleaned$mob_pro
+var_mob_pro_cleaned <- datasets_cleaned$var_mob_pro
+
+# Compare variable names across datasets
+variable_names <- lapply(datasets_cleaned, names)
+print("Variable names in each dataset:")
+print(variable_names)
+
+# Rename variables in demo_cleaned
+demo_cleaned <- demo_cleaned %>%
+ rename(
+  intercommunal_label = x2,
+  municipal_population_2021 = x3,
+  population_density_2021 = x4,
+  intercommunal_code = insee_statistiques_locales
+ )
+
+# Rename variables in local_mob_cleaned
+local_mob_cleaned <- local_mob_cleaned %>%
+  rename(
+   communal_label = x2,
+   share_worker_public_transport = x3,
+   share_household_car = x4,
+   share_car_for_work = x5,
+   share_bike_for_work = x6,
+   communal_code = insee_statistiques_locales
+  )
+
+# Rename variables in revenus_cleaned
+revenus_cleaned <- revenus_cleaned %>%
+  rename(
+   communal_code = insee_statistiques_locales,
+   communal_label = x2,
+   number_household_2021 = x3,
+   median_living_standard_2021 = x4,
+  )
+
+# Rename variables in mob_pro_cleaned
+mob_pro_cleaned <- mob_pro_cleaned %>%
+  rename(
+    communal_code = commune, # communal code for place of residency
+    residency_district = arm, # districts (arrondissement) of residency are just for paris, lyon, marseille (if not, just       ZZZZZ)
+    workplace_abroad_communal_code = dcflt, # if working abroad only (99999 if working in France, ZZZZZ if not applicable).       AL for Germany, BE for Belgium, LU for Luxembourg, SU for Swtizerland
+    workplace_communal_code = dclt,
+    age_five_year_slice = agerevq, # five year age in completed years (by slices of 5, from 000 - 0 to 4yo to 120 - 120 yo)
+    socio_professional_cat = cs1, # 8 types of socio professional categories (1 through 8)
+    nb_household_two_wheelers = derou, # 0 to 3, with 3 being 3 and more, U is for "hors logement ordinaire                 (DOM/métropolitaine", X is "logement ordinaire innocupé (DOM)", Z is for "logement ordinaire (métropolitaine)
+    highest_qualification = dipl, # from 01 (nothing) to 19 (non medical PhD), ZZ are for not applicable (less than 14yo)
+    employment_condition = empl, # from 11 (apprenticeship) to 23 (familial aide), with ZZ for without object
+    workplace_indicator = ilt, # from 1 (in residency commune) to 7 (abroad), Z is without object
+    urban_workplace_indicator = iltuu, # from 1 (works in rural residency commune) to 5 (works away from urban residency         commune), Z is without object
+    immigration_status = immi, # 1 is immigrant, 2 is non immigrant
+    nationality = inatc, # 1 is French, 2 is non french
+    nb_students_trainee_over_14_household = ineem, # number, Y means hors résidence principale, Z means hors logement ordinaire
+    nb_employed_people_household = inpom, # number, Y and Z means the same as above
+    nb_scolarised_people_household = inpsm, # number, Y and Z means the same as above
+    weight = ipondi, # in decimal weight
+    link_household_reference_person = lprm, # from 1 (reference person of the household) to 9 (housemaid living in household), Z meaning "hors logement ordinaire"
+    metrodom_indicator = metrodom, # M for metropolitan france, D for DOM
+    cohabitation_mode = moco, # 8 types defined by a number (for example: 11 is children from couple)
+    economic_activity = na5, # 5 types of role depending on the field (example: FZ is construction), ZZ is without object
+    number_people_household = nperr, # from 1 to 6 (6 being 6 or more), Z is for hors logement ordinaire
+    region_residency = region, 
+    region_workplace = reglt, ## 99 for abroad, ZZ for outre-mer, YY for without object
+    sexe = sexe, # 1 is for male (of course) and 2 for female
+    professional_status = stat, # 4 categories (for example 10 is salaried employee), ZZ is without object
+    occupancy_status_accomodation = stocd, # 6 types (for example 10 is landlord), ZZ is hors logement ordinaire
+    working_time = tp, # 1 for full time, 2 for part time employment, Z for without object
+    main_transportation_work = trans, # 6 types (for example 1 is no transport), Z is without object
+    accomodation_type = typl, # 6 types (for ex 1 is house) Z is without object
+    type_of_household = typmr, # 9 types (for ex 11 is a man living alone), ZZ for hors logement ordinaire
+    number_car_household = voit # 0 to 3 (3 being 3 cars or more), X for logement ordinaire innocupé, Z for hors logement ordinaire
+  )
+
+# Rename variables in iltduu_sexe_trans_cleaned
+iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
+  rename(
+   sexe = sexe,
+   main_transportation_work = trans_19,
+   urban_workplace_indicator = iltduu,
+   communal_code = codgeo,
+   communal_label = libgeo,
+   geographical_type = nivgeo
+   # We have to look at what nivgeo and nb are more specifically before renaming them. 
+  )
+
+# Verify the renamed variables
+list(
+  demo_cleaned = names(demo_cleaned),
+  local_mob_cleaned = names(local_mob_cleaned),
+  revenus_cleaned = names(revenus_cleaned)
+)
+```
+
+**WE NEED TO DO SOME MORE DIGGING FOR MOB_PRO_CLEANED (see if some variable names
+should be the same as for other datasets), but the data set is so big
+to visualize :( need to spend some time on this specifically!**
+
+## Removing the descriptive meta data
+
+```{r}
+# Remove first two rows for demo_cleaned, local_mob_cleaned, and revenus_cleaned
+demo_cleaned <- demo_cleaned[-c(1, 2), ]
+local_mob_cleaned <- local_mob_cleaned[-c(1, 2), ]
+revenus_cleaned <- revenus_cleaned[-c(1, 2), ]
+
+# Preview the updated datasets
+head(demo_cleaned)
+head(local_mob_cleaned)
+head(revenus_cleaned)
+```
+
+## Removing the columns we won't need 
+
+### in mob_pro_cleaned
+
+There are way too many variables in mob_pro_cleaned (32), surely we should not need all of them to conduct our analysis:
+```{r}
+library(dplyr)
+
+# If we want to specify the ones we want to remove:
+mob_pro_cleaned <- mob_pro_cleaned %>%
+  select(-immigration_status, -nationality, -nb_students_trainee_over_14_household, -weight, -link_household_reference_person, -cohabitation_mode, -nb_employed_people_household, -nb_scolarised_people_household, - residency_district) 
+
+colnames(mob_pro_cleaned)
+```
+
+### in stops_france
+
+```{r}
+# If we just want to specify the ones we want to keep:
+stops_france_cleaned <- stops_france_cleaned %>%
+  select(dataset_custom_title, dataset_organisation, stop_id, stop_name, stop_lat, stop_lon) 
+
+colnames(stops_france_cleaned)
+```
+
+
+## Validating each data type
+
+```{r}
+# Validate and adjust data types for demo_cleaned
+str(demo_cleaned)  # Check current types
+demo_cleaned <- demo_cleaned %>%
+  mutate(
+    intercommunal_code = as.character(intercommunal_code),
+    intercommunal_label = as.character(intercommunal_label),
+    municipal_population_2021 = as.numeric(municipal_population_2021),
+    population_density_2021 = as.numeric(population_density_2021)
+  )
+
+# Validate and adjust data types for local_mob_cleaned
+str(local_mob_cleaned)
+local_mob_cleaned <- local_mob_cleaned %>%
+  mutate(
+    communal_code = as.character(communal_code),
+    communal_label = as.character(communal_label),
+    share_worker_public_transport = as.numeric(share_worker_public_transport),
+    share_household_car = as.numeric(share_household_car),
+    share_car_for_work = as.numeric(share_car_for_work),
+    share_bike_for_work = as.numeric(share_bike_for_work)
+  )
+
+# Validate and adjust data types for revenus_cleaned
+str(revenus_cleaned)
+revenus_cleaned <- revenus_cleaned %>%
+  mutate(
+    communal_code = as.character(communal_code),
+    communal_label = as.character(communal_label),
+    number_household_2021 = as.numeric(number_household_2021),
+    median_living_standard_2021 = as.numeric(median_living_standard_2021)
+  )
+
+# Validate and adjust data types for iltduu_sexe_trans_cleaned
+str(iltduu_sexe_trans)
+iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
+  mutate(
+    geographical_type = as.factor(geographical_type),
+    communal_code = as.character(communal_code),
+    communal_label = as.character(communal_label),
+    sexe = as.factor(sexe),
+    main_transportation_work = as.factor(main_transportation_work),
+    nb = as.numeric(nb),
+    urban_workplace_indicator = as.factor(urban_workplace_indicator)
+  )
+
+
+# Validate and adjust data types for stops_france_cleaned
+str(stops_france)
+stops_france <- stops_france %>%
+  mutate(
+    dataset_custom_title = as.character(dataset_custom_title),
+    dataset_organisation = as.character(dataset_organisation),
+    stop_id = as.character(stop_id),
+    stop_name = as.character(stop_name),
+    stop_lat = as.numeric(stop_lat),
+    stop_lon = as.numeric(stop_lon)
+  )
+
+# Validate and adjust data types for mob_pro_cleaned
+str(mob_pro)
+mob_pro_cleaned <- mob_pro_cleaned %>%
+  mutate(
+    communal_code = as.character(communal_code),
+    workplace_abroad_communal_code = as.character(workplace_abroad_communal_code),
+    workplace_communal_code = as.character(workplace_communal_code),
+    age_five_year_slice = as.factor(age_five_year_slice),
+    socio_professional_cat = as.factor(socio_professional_cat),
+    nb_household_two_wheelers = as.numeric(nb_household_two_wheelers),
+    highest_qualification = as.factor(highest_qualification),
+    employment_condition = as.factor(employment_condition),
+    workplace_indicator = as.factor(workplace_indicator),
+    urban_workplace_indicator = as.factor(urban_workplace_indicator),
+    metrodom_indicator = as.factor(metrodom_indicator),
+    economic_activity = as.factor(economic_activity),
+    number_people_household = as.numeric(number_people_household),
+    region_residency = as.character(region_residency),
+    region_workplace = as.character(region_workplace),
+    sexe = as.factor(sexe),
+    professional_status = as.factor(professional_status),
+    occupancy_status_accomodation = as.factor(occupancy_status_accomodation),
+    working_time = as.factor(working_time),
+    main_transportation_work = as.factor(main_transportation_work),
+    accomodation_type = as.factor(accomodation_type),
+    type_of_household = as.factor (type_of_household),
+    number_car_household = as.numeric(number_car_household)
+  )
+
+# Validate and adjust data types for var_mob_pro_cleaned
+str(var_mob_pro)
+var_mob_pro_cleaned <- var_mob_pro_cleaned %>%
+  mutate(
+    cod_var = as.character(cod_var),
+    lib_var = as.character(lib_var),
+    cod_mod = as.character(cod_mod),
+    lib_mod = as.character(lib_mod),
+    type_var = as.character(type_var),
+    long_var = as.character(long_var)
+  )
+
+# Revalidate all datasets
+list(
+  demo_cleaned = str(demo_cleaned),
+  local_mob_cleaned = str(local_mob_cleaned),
+  revenus_cleaned = str(revenus_cleaned),
+  iltduu_sexe_trans_cleaned = str(iltduu_sexe_trans),
+  stops_france_cleaned = str(stops_france),
+  mob_pro_cleaned = str(mob_pro),
+  var_mob_pro_cleaned = str(var_mob_pro)
+)
+```
+
+## Creating consistent observation names / give labels to factors for easier identification
+
+Step 1: Assign Labels to Factors
+
+Purpose: Replace numeric or cryptic factor levels with meaningful labels.
+
+Approach:
+Use the factor() function to assign labels to existing levels.
+Example: Replace 1, 2, 3 with "Urban", "Suburban", "Rural".
+
+Step 2: Determine Whether Factors Should Be Ordered
+
+Purpose: For ordinal factors (e.g., education level, income bracket), establish a natural order.
+
+Approach:
+Use the factor() function with the ordered = TRUE argument.
+Example: For education levels, "Primary" < "Secondary" < "Tertiary".
+
+### Iltduu Sexe Trans Dataset
+
+```{r}
+iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
+  mutate(
+    geographical_type = factor(
+      geographical_type,
+      levels = c("COM", "ARM"),
+      labels = c("Commune", "Municipal District")
+    ),
+    sexe = factor(
+      sexe,
+      levels = c(1, 2),
+      labels = c("Male", "Female")
+    ),
+    main_transportation_work = factor(
+      main_transportation_work,
+      levels = c(1, 2, 3, 4, 5, 6),
+      labels = c(
+        "No Transport", "On Foot", "Bicycle", 
+        "Motorized Two Wheelers", "Car, Truck, Van", "Public Transport"
+      )
+    ),
+    urban_workplace_indicator = factor(
+      urban_workplace_indicator,
+      levels = c(1, 2, 3, 4, 5),
+      labels = c(
+        "Rural: Same Commune", 
+        "Rural: Different Commune", 
+        "Urban: Same Municipality", 
+        "Urban: Same Urban Unit", 
+        "Urban: Outside Urban Unit"
+      )
+    )
+  )
+```
+
+### Mob Pro Dataset
+
+```{r}
+mob_pro_cleaned <- mob_pro_cleaned %>%
+  mutate(
+    age_five_year_slice = factor(
+      age_five_year_slice,
+      levels = c("000", "005", "010", "015", "020", "025", "030", "035", "040", "045", 
+                 "050", "055", "060", "065", "070", "075", "080", "085", "090", "095", 
+                 "100", "105", "110", "115", "120"),
+      labels = c("0-4 years", "5-9 years", "10-14 years", "15-19 years", "20-24 years", 
+                 "25-29 years", "30-34 years", "35-39 years", "40-44 years", "45-49 years", 
+                 "50-54 years", "55-59 years", "60-64 years", "65-69 years", "70-74 years", 
+                 "75-79 years", "80-84 years", "85-89 years", "90-94 years", "95-99 years", 
+                 "100-104 years", "105-109 years", "110-114 years", "115-119 years", "120+ years"),
+      ordered = TRUE
+    ),
+    socio_professional_cat = factor(
+      socio_professional_cat,
+      levels = c(1, 2, 3, 4, 5, 6, 7, 8),
+      labels = c("Agriculteurs exploitants", "Artisans", "Cadres", 
+                 "Professions Intermédiaires", "Employés", "Ouvriers", "Retraités", "Autres"),
+      ordered = FALSE
+    ),
+    highest_qualification = factor(
+      highest_qualification,
+      levels = c("01", "02", "03", "11", "12", "13", "14", "15", "16", "17", "18", "19", "ZZ"),
+      labels = c("No schooling", "Primary or lower", "Secondary or higher", "CEP", "BEPC", 
+                 "CAP/BEP", "General Bac", "Professional Bac", "BTS/DUT", 
+                 "Bachelor", "Master", "Doctorate", "Not Applicable"),
+      ordered = TRUE
+    ),
+    employment_condition = factor(
+      employment_condition,
+      levels = c("11", "12", "13", "14", "15", "16", "21", "22", "23", "ZZ"),
+      labels = c("Apprenticeship", "Temporary Agency", "Supported Jobs", "Interns", 
+                 "Limited Term", "Unlimited Term", "Independent", "Employers", "Family Aids", 
+                 "Not Applicable"),
+      ordered = FALSE
+    ),
+    workplace_indicator = factor(
+      workplace_indicator,
+      levels = c(1, 2, 3, 4, 5, 6, 7, "Z"),
+      labels = c("Within Residence Commune", "Other Commune (Same Dept.)", 
+                 "Other Dept. (Same Region)", "Outside Region: Metropole", 
+                 "Outside Region: DOM", "Outside Region: COM", "Abroad", "Not Applicable"),
+      ordered = TRUE
+    ),
+    urban_workplace_indicator = factor(
+      urban_workplace_indicator,
+      levels = c(1, 2, 3, 4, 5, "Z"),
+      labels = c("Rural: Same Commune", "Rural: Outside Commune", 
+                 "Urban: Same Commune", "Urban: Same Urban Unit", 
+                 "Urban: Outside Urban Unit", "Not Applicable"),
+      ordered = TRUE
+    ),
+    metrodom_indicator = factor(
+      metrodom_indicator,
+      levels = c("M", "D"),
+      labels = c("Metropolitan France", "DOM"),
+      ordered = FALSE
+    ),
+    economic_activity = factor(
+      economic_activity,
+      levels = c("AZ", "BE", "FZ", "GU", "OQ", "ZZ"),
+      labels = c("Agriculture", "Industry", "Construction", 
+                 "Commerce/Transport/Services", 
+                 "Public Admin/Education/Health", "Not Applicable"),
+      ordered = FALSE
+    ),
+    sexe = factor(
+      sexe,
+      levels = c(1, 2),
+      labels = c("Male", "Female"),
+      ordered = FALSE
+    ),
+    professional_status = factor(
+      professional_status,
+      levels = c(10, 21, 22, 23, "ZZ"),
+      labels = c("Salaried", "Independent", "Employers", 
+                 "Family Aids", "Not Applicable"),
+      ordered = FALSE
+    ),
+    occupancy_status_accomodation = factor(
+      occupancy_status_accomodation,
+      levels = c("00", "10", "21", "22", "23", "30", "ZZ"),
+      labels = c("Unoccupied", "Owner", "Renter (Private Non-HLM)", 
+                 "Renter (HLM)", "Renter (Furnished/Hotel)", 
+                 "Free Lodging", "Not Applicable"),
+      ordered = FALSE
+    ),
+    working_time = factor(
+      working_time,
+      levels = c(1, 2, "Z"),
+      labels = c("Full-time", "Part-time", "Not Applicable"),
+      ordered = FALSE
+    ),
+    main_transportation_work = factor(
+      main_transportation_work,
+      levels = c(1, 2, 3, 4, 5, 6, "Z"),
+      labels = c("No Transport", "On Foot", "Bicycle", 
+                 "Motorized Two-Wheelers", "Car/Truck/Van", 
+                 "Public Transport", "Not Applicable"),
+      ordered = FALSE
+    ),
+    accomodation_type = factor(
+      accomodation_type,
+      levels = c(1, 2, 3, 4, 5, 6, "Z"),
+      labels = c("House", "Apartment", "Foyer", "Hotel Room", 
+                 "Improvised Housing", "Independent Room", 
+                 "Not Applicable"),
+      ordered = FALSE
+    ),
+    type_of_household = factor(
+      type_of_household,
+      levels = c("11", "12", "20", "31", "32", "41", "42", "43", "44", "ZZ"),
+      labels = c("Single Male", "Single Female", "Multiple Persons (No Family)", 
+                 "Single Parent (Male)", "Single Parent (Female)", 
+                 "Couple (Two Working)", "Couple (Male Working)", 
+                 "Couple (Female Working)", "Couple (Both Non-working)", 
+                 "Not Applicable"),
+      ordered = FALSE
+    )
+  )
+```
+
+## Removing duplicates
+
+```{r}
+library(dplyr)
+
+# Store initial row counts
+initial_rows <- sapply(list(
+  stops_france_cleaned
+), nrow)
+
+# Stops France dataset
+stops_france_cleaned <- stops_france_cleaned %>% 
+  distinct()
+cat("Stops France: Removed", nrow(stops_france) - nrow(stops_france_cleaned), "duplicate rows.\n")
+
+# Store final row counts
+final_rows <- sapply(list(
+  stops_france_cleaned
+), nrow)
+
+# Summarize row changes
+datasets <- c("Stops France")
+row_summary <- data.frame(
+  Dataset = datasets,
+  Initial_Rows = initial_rows,
+  Final_Rows = final_rows,
+  Duplicates_Removed = initial_rows - final_rows
+)
+
+# Print the summary
+print(row_summary)
+```
+
+## Filtering and selecting relevant columns
+
+Objective
+Filter rows to keep only relevant observations based on your research question.
+Select columns that are directly relevant for your analysis, discarding unnecessary ones.
+
+Implementation Plan
+
+Identify Relevant Columns for Each Dataset:
+Decide which variables are necessary based on your research question (e.g., geographic identifiers, socio-professional categories, commuting modes).
+
+Filter Rows:
+Exclude rows that don’t contribute to your analysis (e.g., NA values or out-of-scope observations).
+Use filter() to narrow down data.
+
+Select Columns:
+Use select() to keep only the necessary columns.
+
+Code Template (that we can customize for each dataset depending on our needs):
+
+ # Filtering and selecting relevant columns for each dataset
+
+ # Demo dataset
+demo_cleaned <- demo_cleaned %>%
+  select(intercommunal_code, intercommunal_label, municipal_population, population_density) %>%
+  filter(!is.na(intercommunal_code))
+
+ # Local Mobility dataset
+local_mob_cleaned <- local_mob_cleaned %>%
+  select(communal_code, communal_label, share_using_public_transport, share_household_car) %>%
+  filter(share_using_public_transport > 0)  # Example: filter rows with transport usage
+
+ # Revenus dataset
+revenus_cleaned <- revenus_cleaned %>%
+  select(communal_code, communal_label, median_living_standard) %>%
+  filter(median_living_standard > 0)  # Remove rows with invalid median values
+
+ # Stops France dataset
+stops_france_cleaned <- stops_france_cleaned %>%
+  select(stop_id, stop_name, longitude, latitude) %>%
+  filter(!is.na(stop_name))  # Remove stops without names
+
+ # Mob Pro dataset
+mob_pro_cleaned <- mob_pro_cleaned %>%
+  select(geo_id, age_category, socio_professional_category, commute_mode) %>%
+  filter(commute_mode %in% c("Car", "Public Transport", "Bicycle"))  # Example filter
+
+ # Var Mob Pro dataset
+var_mob_pro_cleaned <- var_mob_pro_cleaned %>%
+  select(code_mod, lib_mod, commute_share) %>%
+  filter(commute_share > 0)  # Keep only valid rows
+  
+ # Iltduu Sexe Trans dataset
+etc.
+
+```{r}
+
+```
+
+Explanation
+select(): Retains only the columns specified in the parentheses.
+filter(): Removes rows based on logical conditions.
+Example: Exclude rows where commute_mode is not a recognized value.
+Customization:
+Replace placeholders like commute_mode and median_living_standard with column names and values relevant to your datasets.
+
+# Data Joining
 
