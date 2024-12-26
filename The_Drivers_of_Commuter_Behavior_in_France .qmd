@@ -219,11 +219,15 @@ for (name in names(datasets)) {
       ncol(data)
     )
   )
+
   # Print a heading and the table
-  cat("\n### Summary Table for Dataset:", name, "\n")
-  print(kable(summary_table))
-  cat("\n")
+cat("\n### Summary Table for Dataset:", name, "\n")
+print(
+  kable(summary_table, format = "pipe", caption = paste("Summary Table for Dataset:", name))
+)
+cat("\n")
 }
+  
 ```
 
 ## Description of the research question
