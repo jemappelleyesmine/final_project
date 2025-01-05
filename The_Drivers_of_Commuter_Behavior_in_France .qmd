@@ -1143,11 +1143,10 @@ demo...
 - population
 - density
 iltduu...
-- urban workplace indicator (share for each commune?)
-- sexe (share for each commune?)
+- urban workplace indicator 
+- sexe
 - main transportation work
 - number
-
 
 **PLAN**
 Filter rows to keep only relevant observations based on your research question.
@@ -1161,6 +1160,21 @@ Exclude rows that don’t contribute to your analysis (e.g., NA values or out-of
 Use filter() to narrow down data.
 Select Columns:
 Use select() to keep only the necessary columns.
+
+### ILTDUU
+
+1. Aggregate all Paris, Lyon, Marseille data (1 to 2699) into 60 rows per city.
+2. Then leave out geographical type and communal label.
+
+### stops_france
+
+1. Make sure stops_france doesn't have any "doublons" left.
+2. Use each stops lon/lat to associate with an "intercommune".
+3. Indicate nb of stops per intercommune.
+
+
+
+
 
 
 
