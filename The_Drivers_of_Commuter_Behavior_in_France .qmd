@@ -1114,13 +1114,44 @@ row_summary <- data.frame(
 print(row_summary)
 ```
 
+# Data Joining
+
+## Joining local_mob_cleaned and revenus_cleaned
+
+```{r}
+merged_local_mob_revenus <- local_mob_cleaned %>%
+  inner_join(revenus_cleaned, by = "communal_code") %>%
+  select(-communal_label.y) %>% 
+  rename(communal_label = communal_label.x)
+
+# Update datasets_cleaned
+datasets_cleaned$local_mob <- NULL  # Remove local_mob_cleaned
+datasets_cleaned$revenus <- NULL   # Remove revenus_cleaned
+datasets_cleaned$merged_local_mob_revenus <- merged_local_mob_revenus  # Add the merged dataset
+
+```
+
+
 ## Filtering and selecting relevant columns
 
-Objective
+**OBJECTIVE**
+We are looking to have one big dataset that includes the following columns:
+From:
+demo...
+- intercommunal code
+- intercommunal label
+- population
+- density
+iltduu...
+- urban workplace indicator (share for each commune?)
+- sexe (share for each commune?)
+- main transportation work
+- number
+
+
+**PLAN**
 Filter rows to keep only relevant observations based on your research question.
 Select columns that are directly relevant for your analysis, discarding unnecessary ones.
-
-Implementation Plan
 
 Identify Relevant Columns for Each Dataset:
 Decide which variables are necessary based on your research question (e.g., geographic identifiers, socio-professional categories, commuting modes).
@@ -1128,57 +1159,11 @@ Decide which variables are necessary based on your research question (e.g., geog
 Filter Rows:
 Exclude rows that don’t contribute to your analysis (e.g., NA values or out-of-scope observations).
 Use filter() to narrow down data.
-
 Select Columns:
 Use select() to keep only the necessary columns.
 
-Code Template (that we can customize for each dataset depending on our needs):
 
- # Filtering and selecting relevant columns for each dataset
 
- # Demo dataset
-demo_cleaned <- demo_cleaned %>%
-  select(intercommunal_code, intercommunal_label, municipal_population, population_density) %>%
-  filter(!is.na(intercommunal_code))
 
- # Local Mobility dataset
-local_mob_cleaned <- local_mob_cleaned %>%
-  select(communal_code, communal_label, share_using_public_transport, share_household_car) %>%
-  filter(share_using_public_transport > 0)  # Example: filter rows with transport usage
 
- # Revenus dataset
-revenus_cleaned <- revenus_cleaned %>%
-  select(communal_code, communal_label, median_living_standard) %>%
-  filter(median_living_standard > 0)  # Remove rows with invalid median values
-
- # Stops France dataset
-stops_france_cleaned <- stops_france_cleaned %>%
-  select(stop_id, stop_name, longitude, latitude) %>%
-  filter(!is.na(stop_name))  # Remove stops without names
-
- # Mob Pro dataset
-mob_pro_cleaned <- mob_pro_cleaned %>%
-  select(geo_id, age_category, socio_professional_category, commute_mode) %>%
-  filter(commute_mode %in% c("Car", "Public Transport", "Bicycle"))  # Example filter
-
- # Var Mob Pro dataset
-var_mob_pro_cleaned <- var_mob_pro_cleaned %>%
-  select(code_mod, lib_mod, commute_share) %>%
-  filter(commute_share > 0)  # Keep only valid rows
-  
- # Iltduu Sexe Trans dataset
-etc.
-
-```{r}
-
-```
-
-Explanation
-select(): Retains only the columns specified in the parentheses.
-filter(): Removes rows based on logical conditions.
-Example: Exclude rows where commute_mode is not a recognized value.
-Customization:
-Replace placeholders like commute_mode and median_living_standard with column names and values relevant to your datasets.
-
-# Data Joining
 
