@@ -1135,6 +1135,7 @@ datasets_cleaned$merged_local_mob_revenus <- merged_local_mob_revenus  # Add the
 ## Filtering and selecting relevant columns
 
 **OBJECTIVE**
+
 We are looking to have one big dataset that includes the following columns:
 From:
 demo...
@@ -1162,6 +1163,7 @@ mob_pro
 
 
 **PLAN**
+
 Filter rows to keep only relevant observations based on your research question.
 Select columns that are directly relevant for your analysis, discarding unnecessary ones.
 
@@ -1187,7 +1189,7 @@ Use select() to keep only the necessary columns.
 
 ### mob_pro
 
-For each intercommune we want:
+1. Filter such that we only keep the following variables:
 - age
 - socio prof cat
 - nb of two-wheelers
