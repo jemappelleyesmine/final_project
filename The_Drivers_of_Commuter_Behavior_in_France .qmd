@@ -1116,6 +1116,22 @@ print(row_summary)
 
 # Data Joining
 
+
+## Joining local_mob_cleaned and revenus_cleaned
+
+```{r}
+merged_local_mob_revenus <- local_mob_cleaned %>%
+  inner_join(revenus_cleaned, by = "communal_code") %>%
+  select(-communal_label.y) %>% 
+  rename(communal_label = communal_label.x)
+
+# Update datasets_cleaned
+datasets_cleaned$local_mob <- NULL  # Remove local_mob_cleaned
+datasets_cleaned$revenus <- NULL   # Remove revenus_cleaned
+datasets_cleaned$merged_local_mob_revenus <- merged_local_mob_revenus  # Add the merged dataset
+
+```
+
 ## From Commune to Intercommunalité.
 
 ```{r}
@@ -1143,25 +1159,28 @@ if (!file.exists(here(local_dir, local_name))) {
 }
 ```
 
-Keep only the variables we are interested in.
-
-
-## 1. Joining local_mob_cleaned and revenus_cleaned
+Keep only the variables we are interested in:
+- codeCommune
+- nomCommune
+- codeEPCI
+- nomEPCI
+- latitude
+- longitude
+- surface
 
 ```{r}
-merged_local_mob_revenus <- local_mob_cleaned %>%
-  inner_join(revenus_cleaned, by = "communal_code") %>%
-  select(-communal_label.y) %>% 
-  rename(communal_label = communal_label.x)
+## Filter the dataset to keep only the required variables
+COM_to_EPCI_filtered <- COM_to_EPCI %>%
+  select(codeCommune, nomCommune, codeEPCI, nomEPCI, latitude, longitude, surface)
 
 # Update datasets_cleaned
-datasets_cleaned$local_mob <- NULL  # Remove local_mob_cleaned
-datasets_cleaned$revenus <- NULL   # Remove revenus_cleaned
-datasets_cleaned$merged_local_mob_revenus <- merged_local_mob_revenus  # Add the merged dataset
+datasets_cleaned$COM_to_EPCI <- COM_to_EPCI_filtered
+
 
 ```
 
-## 2. Filtering and selecting relevant columns
+
+## Filtering and selecting relevant columns 
 
 **OBJECTIVE**
 
@@ -1212,41 +1231,89 @@ Use filter() to narrow down data.
 Select Columns:
 Use select() to keep only the necessary columns.
 
+Then aggregate to have it at Intercommunalité level.
+
 ### ILTDUU
 
-1. Put together all arondissements in Lyon, Paris, Marseille
+1.Filter out geotype and create a new dataset containing only the following variables:
+- urban_workplace_indicator
+- sexe
+- main_transportation_work
+- nb
+
+2. Aggregate at Intercommunalité level
 
 ```{r}
-iltduu_sexe_trans_cleaned2.0 <- iltduu_sexe_trans_cleaned %>%
-  mutate(
-    communal_label = case_when(
-      grepl("Lyon", communal_label, ignore.case = TRUE) ~ "Lyon",
-      grepl("Marseille", communal_label, ignore.case = TRUE) ~ "Marseille",
-      grepl("Paris", communal_label, ignore.case = TRUE) ~ "Paris",
-      TRUE ~ communal_label
-    ),
-    communal_code = case_when(
-      communal_label == "Lyon" ~ "69381",
-      communal_label == "Marseille" ~ "13201",
-      communal_label == "Paris" ~ "75001",
-      TRUE ~ communal_code
-    )
-  ) %>%
-  group_by(geographical_type, communal_code, communal_label, urban_workplace_indicator, sexe, main_transportation_work) %>%
-  summarise(
-    nb = sum(nb, na.rm = TRUE),
-    .groups = "drop"
+# Keep only the first occurrence of each codeCommune
+COM_to_EPCI_filtered_unique <- COM_to_EPCI_filtered %>%
+  distinct(codeCommune, .keep_all = TRUE)
+
+# Add codeEPCI to iltduu_sexe_trans_cleaned based on communal_code and codeCommune
+iltduu_transformed <- iltduu_sexe_trans_cleaned %>%
+  left_join(
+    COM_to_EPCI_filtered_unique %>% select(codeCommune, codeEPCI),
+    by = c("communal_code" = "codeCommune"),
+    relationship = "many-to-many"
   )
 
 ```
 
-2. Filter out geotype.
+
+```{r}
+# Aggregate data to have 60 entries per codeEPCI
+iltduu_aggregated <- iltduu_transformed %>%
+  group_by(
+    codeEPCI,
+    urban_workplace_indicator,
+    sexe,
+    main_transportation_work
+  ) %>%
+  summarise(
+    nb = sum(nb, na.rm = TRUE),  # Sum 'nb' for each combination of grouping variables
+    .groups = "drop"            # Avoid warnings about grouped data
+  )
+
+# Validate the number of entries per codeEPCI
+entries_per_codeEPCI <- iltduu_aggregated %>%
+  count(codeEPCI) %>%
+  filter(n != 60)  # Check if any codeEPCI does not have 60 entries
+
+print(entries_per_codeEPCI)
+
+# Checking no data is lost
+
+# Sum of the nb column in iltduu_aggregated
+sum_iltduu_aggregated <- sum(iltduu_aggregated$nb, na.rm = TRUE)
+
+# Sum of the nb column in iltduu_transformed
+sum_iltduu_transformed <- sum(iltduu_transformed$nb, na.rm = TRUE)
+
+sum_iltduu_aggregated
+sum_iltduu_transformed
+```
+
 
 ### stops_france
 
 1. Make sure stops_france doesn't have any "doublons" left.
 2. Use each stops lon/lat to associate with an "intercommune".
 3. Indicate nb of stops per intercommune.
+
+Stops France Dataset:
+
+Use spatial tools to assign stops to codeEPCI (if lon/lat is available).
+
+Example using the sf package:
+```{r}
+library(sf)
+stops_france_cleaned <- stops_france_cleaned %>%
+  mutate(
+    codeEPCI = spatial_join(stops, COM_to_EPCI_filtered, lon = stop_lon, lat = stop_lat)
+  ) %>%
+  group_by(codeEPCI) %>%
+  summarise(nb_stops = n(), .groups = "drop")
+```
+
 
 ### mob_pro
 
@@ -1275,11 +1342,17 @@ iltduu_sexe_trans_cleaned2.0 <- iltduu_sexe_trans_cleaned %>%
   - **inner_join()**: Keeps only rows with matching keys in both datasets.
   - **full_join()**: Combines all rows from both datasets.
 
-## Harmonizing aggregation levels
+Final Merging
+Combine datasets using left_join to avoid losing rows when some datasets might lack values:
 
-- If datasets are aggregated differently (e.g., commune vs. region level), standardize them:
-  - Aggregate lower-level data using group_by() and summarise().
-  - Split higher-level data if possible.
+```{r}
+##final_dataset <- demo_cleaned %>%
+  ##left_join(iltduu_aggregated, by = "codeEPCI") %>%
+  ##left_join(mob_pro_cleaned, by = "codeEPCI") %>%
+  ##left_join(stops_france_cleaned, by = "codeEPCI") %>%
+  ##left_join(merged_local_mob_revenus, by = "codeEPCI")
+
+```
 
 ## Validating the join
 
