@@ -1445,7 +1445,6 @@ mob_pro_aggregated <- mob_pro_transformed %>%
 ```
 
 
-
 ## 3. DATASETS ready for JOIN by codeEPCI
 
 - demo_cleaned
@@ -1453,6 +1452,61 @@ mob_pro_aggregated <- mob_pro_transformed %>%
 - merged_local_mob_revenus_aggregated
 - stops_summary
 - mob_pro_aggregated
+
+
+## 4. Steps to Consolidate Data:
+Start with demo_cleaned: Use it as the base dataset since it contains the intercommunalité identifiers.
+Join other datasets:
+Use left_join() to add data from iltduu_aggregated, merged_local_mob_revenus_aggregated, stops_summary, and mob_pro_aggregated.
+Ensure that all joins are based on codeEPCI.
+
+1. Identify the Purpose of the Consolidated Dataset
+Key Question: What is the final goal of the consolidated dataset? For example:
+Is it for analysis, visualization, modeling, or reporting?
+Are you focused on comparing intercommunalités (codeEPCI) across different dimensions?
+This clarity will help decide which variables to keep, aggregate, or transform.
+
+2. Ensure Common Identifiers
+The codeEPCI identifier must exist and be consistent across all datasets to allow seamless joins. Check for:
+Duplicates: Ensure each codeEPCI is unique in datasets like demo_cleaned (the base dataset).
+Consistency: Verify that the codeEPCI format (e.g., leading zeros) is consistent across all datasets.
+
+3. Handle Granular Variables Thoughtfully
+Some datasets (e.g., mob_pro_transformed) contain highly granular variables (e.g., age slices, socio-professional categories). Consider:
+Aggregating these variables to the codeEPCI level where necessary, but only after determining the aggregation method (e.g., mean, weighted average, sum).
+Preserving granularity for specific analyses (e.g., age distribution) by keeping detailed data in a separate dataset linked to codeEPCI.
+
+4. Choose Appropriate Aggregation Methods
+For numeric variables that need to be aggregated to the intercommunalité level, ensure the method matches the variable type:
+Counts (e.g., population, number of stops): Use the sum.
+Shares/Percentages (e.g., share_worker_public_transport): Use a weighted average with a relevant weighting variable (e.g., number of households).
+Categorical variables (e.g., most common socio-professional category): Use the mode or dominant category.
+
+5. Retain Important Contextual Variables
+Avoid dropping useful variables like urban_workplace_indicator and working_time, even if they are not aggregated, as they provide context and could be used in future analyses.
+Use consistent naming conventions for variables to avoid confusion when merged.
+
+6. Address Missing Values
+Ensure missing values are handled before merging:
+For numeric variables: Decide whether to impute missing values (e.g., using means/medians) or keep them as NA.
+For categorical variables: Replace with "Unknown" or a placeholder where appropriate.
+After merging, check for increased missingness in the final dataset.
+
+7. Avoid Duplication and Redundancy
+Some datasets might include overlapping variables (e.g., population size in both demo_cleaned and merged_local_mob_revenus_aggregated).
+Choose one source for each variable to avoid redundancy.
+
+8. Prioritize Variable Inclusion
+Decide which variables are essential for your analysis. Consider splitting the final dataset into:
+A core dataset with critical variables (e.g., population density, transportation metrics).
+A secondary dataset with detailed or auxiliary variables for specific deep-dives (e.g., age slices, socio-professional categories).
+
+9. Test the Consolidation
+Validate the consolidated dataset:
+Ensure no data is lost by comparing aggregate metrics (e.g., sums, means) in the original datasets to the consolidated version.
+Check for consistency in values across the merged datasets.
+
+## Notes
 
 ## Choosing an appropriate join
 
