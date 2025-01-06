@@ -1336,22 +1336,48 @@ merged_local_mob_revenus_aggregated <- merged_local_mob_revenus_transformed %>%
 ### stops_france
 
 1. Make sure stops_france doesn't have any "doublons" left.
-2. Use each stops lon/lat to associate with an "intercommune".
-3. Indicate nb of stops per intercommune.
 
-Stops France Dataset:
+```{r}
+stops_france_noduplicates <- stops_france_cleaned %>%
+  distinct(dataset_custom_title, stop_name, .keep_all = TRUE)
+```
+
+Note: distinct(dataset_custom_title, stop_name, .keep_all = TRUE) ensures that only unique combinations of dataset_custom_title and stop_name remain in the dataset.
+
+2. Use each stops lon/lat to associate with an "intercommune" and indicate nb of stops per intercommune.
 
 Use spatial tools to assign stops to codeEPCI (if lon/lat is available).
 
-Example using the sf package:
+Using the sf package:
+
 ```{r}
+#Filter Out Rows with Missing Coordinates
+COM_to_EPCI_filtered <- COM_to_EPCI_filtered %>%
+  filter(!is.na(longitude) & !is.na(latitude))
+stops_france_noduplicates <- stops_france_noduplicates %>%
+  filter(!is.na(stop_lon) & !is.na(stop_lat))
+
 library(sf)
-stops_france_cleaned <- stops_france_cleaned %>%
-  mutate(
-    codeEPCI = spatial_join(stops, COM_to_EPCI_filtered, lon = stop_lon, lat = stop_lat)
-  ) %>%
+
+# Convert datasets to sf objects
+stops_sf <- stops_france_noduplicates %>%
+  st_as_sf(coords = c("stop_lon", "stop_lat"), crs = 4326)  # Assign CRS (e.g., WGS 84)
+
+epci_sf <- COM_to_EPCI_filtered %>%
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326)  
+
+# Perform spatial join
+stops_france_ready <- st_join(stops_sf, epci_sf, join = st_nearest_feature)
+
+# Group by codeEPCI and count the number of stops
+stops_summary <- stops_france_ready %>%
   group_by(codeEPCI) %>%
   summarise(nb_stops = n(), .groups = "drop")
+
+stops_summary <- stops_summary %>%
+  st_drop_geometry()
+  
+
 ```
 
 
@@ -1374,6 +1400,7 @@ stops_france_cleaned <- stops_france_cleaned %>%
 - demo_cleaned
 - iltduu_aggregated
 - merged_local_mob_revenus_aggregated
+- stops_france
 
 ## Choosing an appropriate join
 
