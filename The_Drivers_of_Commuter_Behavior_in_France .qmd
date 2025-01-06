@@ -1114,6 +1114,7 @@ row_summary <- data.frame(
 print(row_summary)
 ```
 
+
 # Data Joining
 
 
@@ -1178,7 +1179,6 @@ datasets_cleaned$COM_to_EPCI <- COM_to_EPCI_filtered
 
 
 ```
-
 
 ## Filtering and selecting relevant columns 
 
@@ -1292,6 +1292,46 @@ sum_iltduu_aggregated
 sum_iltduu_transformed
 ```
 
+### merged_local_mob_revenus
+
+Aggregate data
+
+```{r}
+# Step 1: Add codeEPCI to merged_local_mob_revenus
+merged_local_mob_revenus_transformed <- merged_local_mob_revenus %>%
+  left_join(
+    COM_to_EPCI_filtered_unique %>% select(codeCommune, codeEPCI),
+    by = c("communal_code" = "codeCommune"),
+    relationship = "many-to-many"
+  )
+
+# Step 2: Aggregate data at the Intercommunalité level (codeEPCI)
+merged_local_mob_revenus_aggregated <- merged_local_mob_revenus_transformed %>%
+  group_by(codeEPCI) %>%
+  summarise(
+    # Weighted average for share_worker_public_transport
+    share_worker_public_transport = sum(share_worker_public_transport * number_household_2021, na.rm = TRUE) / sum(number_household_2021, na.rm = TRUE),
+    
+    # Weighted average for share_household_car
+    share_household_car = sum(share_household_car * number_household_2021, na.rm = TRUE) / sum(number_household_2021, na.rm = TRUE),
+    
+    # Weighted average for share_car_for_work
+    share_car_for_work = sum(share_car_for_work * number_household_2021, na.rm = TRUE) / sum(number_household_2021, na.rm = TRUE),
+    
+    # Weighted average for share_bike_for_work
+    share_bike_for_work = sum(share_bike_for_work * number_household_2021, na.rm = TRUE) / sum(number_household_2021, na.rm = TRUE),
+    
+    # Summing the total number of households
+    number_household_2021 = sum(number_household_2021, na.rm = TRUE),
+    
+    # Weighted average for median_living_standard
+    median_living_standard_2021 = sum(median_living_standard_2021 * number_household_2021, na.rm = TRUE) / sum(number_household_2021, na.rm = TRUE),
+    
+    .groups = "drop" # Avoid warnings about grouped data
+  )
+```
+
+
 
 ### stops_france
 
@@ -1329,11 +1369,11 @@ stops_france_cleaned <- stops_france_cleaned %>%
 - accomodation type
 
 
-## 3. Identifying common keys
+## 3. DATASETS ready for JOIN by codeEPCI
 
-- Determine the column(s) shared between datasets for joining: 
-  - For example, geographic identifiers like COMMUNE or CODEGEO.
-  - Use intersect(names(dataset1), names(dataset2)) to find common columns
+- demo_cleaned
+- iltduu_aggregated
+- merged_local_mob_revenus_aggregated
 
 ## Choosing an appropriate join
 
