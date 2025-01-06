@@ -1146,7 +1146,20 @@ iltduu...
 - urban workplace indicator 
 - sexe
 - main transportation work
-- number
+- number of "occurences"
+stops_france...
+- nb of stops per intercommune
+mob_pro
+- age
+- socio prof cat
+- nb of two-wheelers
+- highest qualification
+- number people per household
+- number cars per household
+- type of household
+- working time
+- accomodation type
+
 
 **PLAN**
 Filter rows to keep only relevant observations based on your research question.
@@ -1171,6 +1184,19 @@ Use select() to keep only the necessary columns.
 1. Make sure stops_france doesn't have any "doublons" left.
 2. Use each stops lon/lat to associate with an "intercommune".
 3. Indicate nb of stops per intercommune.
+
+### mob_pro
+
+For each intercommune we want:
+- age
+- socio prof cat
+- nb of two-wheelers
+- highest qualification
+- number people per household
+- number cars per household
+- type of household
+- working time
+- accomodation type
 
 
 
