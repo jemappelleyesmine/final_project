@@ -1506,6 +1506,103 @@ Validate the consolidated dataset:
 Ensure no data is lost by comparing aggregate metrics (e.g., sums, means) in the original datasets to the consolidated version.
 Check for consistency in values across the merged datasets.
 
+### Join demo and stops
+There are not the same number of rows, let's look into that.
+
+```{r}
+# Extract codeEPCI from both datasets
+demo_codeEPCI <- demo_cleaned$intercommunal_code  
+stops_codeEPCI <- stops_summary$codeEPCI          
+
+# Find codes in demo_cleaned but not in stops_summary
+missing_in_stops <- setdiff(demo_codeEPCI, stops_codeEPCI)
+
+# Create a data frame for the missing codeEPCI values
+missing_stops <- data.frame(
+  codeEPCI = missing_in_stops,
+  nb_stops = 0  # Assign 0 for nb_stops
+)
+
+# Convert codeEPCI in both data frames to double
+stops_summary <- stops_summary %>%
+  mutate(codeEPCI = as.double(codeEPCI))
+
+missing_stops <- missing_stops %>%
+  mutate(codeEPCI = as.double(codeEPCI))
+
+# Append the missing_stops data frame to stops_summary
+stops_summary_updated <- stops_summary %>%
+  bind_rows(missing_stops)
+
+# Remove rows where nb_stops is NA
+stops_summary_updated <- stops_summary_updated %>%
+  filter(!is.na(nb_stops))
+
+```
+
+Now there are 1266 entries in stops_summary_updated.
+However only 1255 in demo_cleaned.
+There are 11 codeEPCIs that are missing in demo_cleaned.
+
+```{r}
+# Extract the EPCI codes from both datasets
+demo_epci_codes <- demo_cleaned$intercommunal_code
+com_to_epci_codes <- COM_to_EPCI_filtered$codeEPCI
+
+# Find the EPCI codes in COM_to_EPCI_filtered that are missing in demo_cleaned and remove NA values
+missing_epci_codes <- setdiff(com_to_epci_codes, demo_epci_codes)
+missing_epci_codes <- missing_epci_codes[!is.na(missing_epci_codes)]  # Filter out NA values
+
+
+# Display the missing EPCI codes
+print(missing_epci_codes)
+
+# Filter COM_to_EPCI_filtered to find rows matching the missing_epci_codes
+missing_epci_details <- COM_to_EPCI_filtered %>%
+  filter(codeEPCI %in% missing_epci_codes) %>%
+  select(codeEPCI, nomEPCI)
+
+# Remove duplicates
+missing_epci_details_unique <- missing_epci_details %>%
+  distinct()
+
+# Display the result
+print(missing_epci_details_unique)
+
+```
+So in demo_cleaned, we are missing quite many values regarding Paris. This will make our analysis less accurate.
+
+Perform the join.
+
+```{r}
+
+# Convert intercommunal_code in demo_cleaned to numeric
+demo_cleaned <- demo_cleaned %>%
+  mutate(intercommunal_code = as.numeric(intercommunal_code))
+
+# Perform the left join
+demo_stops <- demo_cleaned %>%
+  left_join(
+    stops_summary_updated %>% select(codeEPCI, nb_stops),
+    by = c("intercommunal_code" = "codeEPCI")
+  )
+
+# Replace NA in nb_stops with 0
+demo_stops <- demo_stops %>%
+  mutate(nb_stops = ifelse(is.na(nb_stops), 0, nb_stops))
+
+
+# Comment on missing matches
+missing_intercommunal_code <- setdiff(stops_summary_updated$codeEPCI, demo_cleaned$intercommunal_code)
+cat("The following codeEPCI values do not have matching intercommunal_code in demo_cleaned:\n")
+print(missing_intercommunal_code)
+
+```
+
+Métropole du Grand Paris arrives 18th in number of stops. Seems odd and unlikely.
+
+We should still handle the "NA" in the resulting dataset.
+
 ## Notes
 
 ## Choosing an appropriate join
