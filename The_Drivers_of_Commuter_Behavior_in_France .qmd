@@ -1209,3 +1209,76 @@ Use select() to keep only the necessary columns.
 
 
 
+## Identifying common keys
+
+- Determine the column(s) shared between datasets for joining: 
+  - For example, geographic identifiers like COMMUNE or CODEGEO.
+  - Use intersect(names(dataset1), names(dataset2)) to find common columns
+
+```{r}
+
+```
+
+## Choosing an appropriate join
+
+- Use **left_join(), right_join(), inner_join(), or full_join()** from the dplyr package depending on your needs:
+  - **left_join()**: Keeps all rows from the first dataset.
+  - **inner_join()**: Keeps only rows with matching keys in both datasets.
+  - **full_join()**: Combines all rows from both datasets.
+  
+```{r}
+
+```
+
+## Harmonizing aggregation levels
+
+- If datasets are aggregated differently (e.g., commune vs. region level), standardize them:
+  - Aggregate lower-level data using group_by() and summarise().
+  - Split higher-level data if possible.
+  
+```{r}
+
+```
+
+## Validating the join
+
+- After joining, check for:
+  - Missing matches using filter(is.na(joined_column)).
+  - Unexpected duplicates or changes in row counts using nrow().
+  
+```{r}
+
+```
+
+# Writing cleaned data
+
+- Save cleaned and joined datasets for future use:
+  - Example: write.csv(cleaned_data, "cleaned_data.csv").
+
+```{r}
+
+```
+
+# First exploratory analysis post-join
+
+## Preliminary summarization (to ensure correctness)
+
+- Summarize joined datasets to ensure correctness:
+  - Use summary(), head(), and nrow() to inspect results.
+
+```{r}
+
+```
+
+## Preliminary visualization (to check consistency)
+
+- Visualize key variables across the merged dataset to check consistency:
+  - For example, compare population density against transport usage.
+ 
+```{r}
+
+```
+ 
+# Data Exploration
+
+# Data Visualization
