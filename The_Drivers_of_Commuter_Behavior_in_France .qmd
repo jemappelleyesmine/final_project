@@ -1376,7 +1376,6 @@ stops_summary <- stops_france_ready %>%
 
 stops_summary <- stops_summary %>%
   st_drop_geometry()
-  
 
 ```
 
@@ -1394,13 +1393,66 @@ stops_summary <- stops_summary %>%
 - working time
 - accomodation type
 
+```{r}
+# Select only the required columns
+mob_pro_filtered <- mob_pro_cleaned %>%
+  select(
+    communal_code,                    # Communal code
+    age_five_year_slice,              # Age
+    socio_professional_cat,           # Socio-professional category
+    nb_household_two_wheelers,        # Number of two-wheelers
+    highest_qualification,            # Highest qualification
+    number_people_household,          # Number of people per household
+    number_car_household,             # Number of cars per household
+    type_of_household,                # Type of household
+    working_time,                     # Working time
+    accomodation_type,                # Accommodation type
+    workplace_indicator,              # Workplace indicator 1
+    urban_workplace_indicator         # Workplace indicator 2
+  )
+```
+
+Now aggregate
+
+```{r}
+# Step 1: Add codeEPCI to mob_pro_filtered
+mob_pro_transformed <- mob_pro_filtered %>%
+  left_join(
+    COM_to_EPCI_filtered_unique %>% select(codeCommune, codeEPCI),
+    by = c("communal_code" = "codeCommune"),
+    relationship = "many-to-many"
+  )
+
+mob_pro_aggregated <- mob_pro_transformed %>%
+  group_by(
+    codeEPCI, 
+    age_five_year_slice, 
+    socio_professional_cat, 
+    highest_qualification, 
+    type_of_household, 
+    working_time, 
+    accomodation_type, 
+    workplace_indicator, 
+    urban_workplace_indicator
+  ) %>%
+  summarise(
+    nb_household_two_wheelers = mean(nb_household_two_wheelers, na.rm = TRUE),  # Mean number of two-wheelers
+    number_people_household = mean(number_people_household, na.rm = TRUE),      # Mean number of people per household
+    number_car_household = mean(number_car_household, na.rm = TRUE),            # Mean number of cars per household
+    .groups = "drop" # Avoid warnings about grouped data
+  )
+
+```
+
+
 
 ## 3. DATASETS ready for JOIN by codeEPCI
 
 - demo_cleaned
 - iltduu_aggregated
 - merged_local_mob_revenus_aggregated
-- stops_france
+- stops_summary
+- mob_pro_aggregated
 
 ## Choosing an appropriate join
 
