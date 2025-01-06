@@ -1116,7 +1116,37 @@ print(row_summary)
 
 # Data Joining
 
-## Joining local_mob_cleaned and revenus_cleaned
+## From Commune to Intercommunalité.
+
+```{r}
+library(vroom)
+library(here)
+here::i_am("Final_Project_Commuter_behavior.Rproj")
+
+source <- "https://www.data.gouv.fr/fr/datasets/r/7acc46ad-1c79-43d9-8f2d-d0a8ec78c068"
+local_name <- "COM_to_EPCI.csv.gz"
+local_dir <- "data"
+## is the directory available?
+if (!dir.exists(here(local_dir))) {
+  ## create the directory if needed
+  dir.create(here(local_dir))
+}
+## is the file available?
+if (!file.exists(here(local_dir, local_name))) {
+  ## we need to download it
+  COM_to_EPCI <- vroom(source)
+  ## let's save the file to avoid useless downloading
+  vroom_write(COM_to_EPCI, here(local_dir, local_name), delim = ",")
+} else {
+  ## we need only to load it
+  COM_to_EPCI <- vroom(here(local_dir, local_name))
+}
+```
+
+Keep only the variables we are interested in.
+
+
+## 1. Joining local_mob_cleaned and revenus_cleaned
 
 ```{r}
 merged_local_mob_revenus <- local_mob_cleaned %>%
@@ -1131,8 +1161,7 @@ datasets_cleaned$merged_local_mob_revenus <- merged_local_mob_revenus  # Add the
 
 ```
 
-
-## Filtering and selecting relevant columns
+## 2. Filtering and selecting relevant columns
 
 **OBJECTIVE**
 
@@ -1160,6 +1189,13 @@ mob_pro
 - type of household
 - working time
 - accomodation type
+merged_local_mob_revenus
+- share_worker_public_transport
+- share_household_car
+- share_car_for_work
+- share_bike_for_work
+- number_households
+- median_living_standard
 
 
 **PLAN**
@@ -1178,8 +1214,33 @@ Use select() to keep only the necessary columns.
 
 ### ILTDUU
 
-1. Aggregate all Paris, Lyon, Marseille data (1 to 2699) into 60 rows per city.
-2. Then leave out geographical type and communal label.
+1. Put together all arondissements in Lyon, Paris, Marseille
+
+```{r}
+iltduu_sexe_trans_cleaned2.0 <- iltduu_sexe_trans_cleaned %>%
+  mutate(
+    communal_label = case_when(
+      grepl("Lyon", communal_label, ignore.case = TRUE) ~ "Lyon",
+      grepl("Marseille", communal_label, ignore.case = TRUE) ~ "Marseille",
+      grepl("Paris", communal_label, ignore.case = TRUE) ~ "Paris",
+      TRUE ~ communal_label
+    ),
+    communal_code = case_when(
+      communal_label == "Lyon" ~ "69381",
+      communal_label == "Marseille" ~ "13201",
+      communal_label == "Paris" ~ "75001",
+      TRUE ~ communal_code
+    )
+  ) %>%
+  group_by(geographical_type, communal_code, communal_label, urban_workplace_indicator, sexe, main_transportation_work) %>%
+  summarise(
+    nb = sum(nb, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+```
+
+2. Filter out geotype.
 
 ### stops_france
 
@@ -1201,7 +1262,7 @@ Use select() to keep only the necessary columns.
 - accomodation type
 
 
-## Identifying common keys
+## 3. Identifying common keys
 
 - Determine the column(s) shared between datasets for joining: 
   - For example, geographic identifiers like COMMUNE or CODEGEO.
