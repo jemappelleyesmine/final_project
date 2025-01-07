@@ -7,6 +7,19 @@ editor:
     wrap: 72
 ---
 
+```{r setup, include=FALSE}
+# Load knitr package
+library(knitr)
+
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = FALSE,    # Hide all code
+  message = FALSE, # Suppress messages
+  warning = FALSE  # Suppress warnings
+)
+```
+
+
 Link to the github project:
 https://github.com/jemappelleyesmine/final_project
 
@@ -1445,7 +1458,7 @@ mob_pro_aggregated <- mob_pro_transformed %>%
 ```
 
 
-## 3. DATASETS ready for JOIN by codeEPCI
+## DATASETS ready for JOIN by codeEPCI
 
 - demo_cleaned
 - iltduu_aggregated
@@ -1571,6 +1584,8 @@ print(missing_epci_details_unique)
 
 ```
 So in demo_cleaned, we are missing quite many values regarding Paris. This will make our analysis less accurate.
+
+ADD 16 NA to those EPCI.
 
 Perform the join.
 
