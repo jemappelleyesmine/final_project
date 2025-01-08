@@ -1644,27 +1644,56 @@ Contains aggregated mobility and revenue data, including variables like the shar
 mob_pro_aggregated
 Contains aggregated socio-economic data at the intercommunalité level, including variables like age groups, socio-professional categories, household data (e.g., number of people per household, number of cars), and employment conditions. Missing values in the nb_household_two_wheelers column have been handled.
 
-### Investigate the missing codeEPCI values from demo_stops (that are in merged local mob)
+### Investigate the unique observations of codeEPCI values for each dataset
 
 ```{r}
 # Step 1: Rename intercommunal_code to codeEPCI in demo_stops for consistency
 demo_stops <- demo_stops %>%
   rename(codeEPCI = intercommunal_code)
 
-# Step 2: Extract codeEPCI from both datasets
-demo_stops_codes <- demo_stops$codeEPCI
-merged_local_mob_revenus_codes <- merged_local_mob_revenus_aggregated$codeEPCI
+```
 
-# Step 3: Find the codeEPCI values that are in merged_local_mob_revenus_aggregated but missing in demo_stops
-missing_in_demo_stops <- setdiff(merged_local_mob_revenus_codes, demo_stops_codes)
+```{r}
+# Step 1: Extract unique codeEPCI values from each dataset
+demo_stops_unique_codes <- unique(demo_stops$codeEPCI)
+mob_pro_unique_codes <- unique(mob_pro_aggregated$codeEPCI)
+iltduu_unique_codes <- unique(iltduu_aggregated$codeEPCI)
+merged_local_mob_revenus_unique_codes <- unique(merged_local_mob_revenus_aggregated$codeEPCI)
 
-# Step 4: Create a data frame for the missing codeEPCI values
-missing_demo_stops <- data.frame(
-  codeEPCI = missing_in_demo_stops
-)
+# Step 2: List the number of unique codeEPCI values in each dataset
+cat("Unique codeEPCI in demo_stops: ", length(demo_stops_unique_codes), "\n")
+cat("Unique codeEPCI in mob_pro_aggregated: ", length(mob_pro_unique_codes), "\n")
+cat("Unique codeEPCI in iltduu_aggregated: ", length(iltduu_unique_codes), "\n")
+cat("Unique codeEPCI in merged_local_mob_revenus_aggregated: ", length(merged_local_mob_revenus_unique_codes), "\n")
+```
 
-# Step 5: Display the missing codeEPCI values
-print(missing_demo_stops)
+```{r}
+# Step 1: Identify the common codeEPCI values across all datasets
+common_codeEPCI <- Reduce(intersect, list(
+  demo_stops$codeEPCI,
+  mob_pro_aggregated$codeEPCI,
+  iltduu_aggregated$codeEPCI,
+  merged_local_mob_revenus_aggregated$codeEPCI
+))
+
+# Step 2: Filter each dataset to keep only rows with codeEPCI in the common set
+demo_stops_filtered <- demo_stops %>%
+  filter(codeEPCI %in% common_codeEPCI)
+
+mob_pro_aggregated_filtered <- mob_pro_aggregated %>%
+  filter(codeEPCI %in% common_codeEPCI)
+
+iltduu_aggregated_filtered <- iltduu_aggregated %>%
+  filter(codeEPCI %in% common_codeEPCI)
+
+merged_local_mob_revenus_aggregated_filtered <- merged_local_mob_revenus_aggregated %>%
+  filter(codeEPCI %in% common_codeEPCI)
+
+# Step 3: Check the number of rows in each filtered dataset
+cat("Number of rows in demo_stops_filtered: ", nrow(demo_stops_filtered), "\n")
+cat("Number of rows in mob_pro_aggregated_filtered: ", nrow(mob_pro_aggregated_filtered), "\n")
+cat("Number of rows in iltduu_aggregated_filtered: ", nrow(iltduu_aggregated_filtered), "\n")
+cat("Number of rows in merged_local_mob_revenus_aggregated_filtered: ", nrow(merged_local_mob_revenus_aggregated_filtered), "\n")
 ```
 
 
