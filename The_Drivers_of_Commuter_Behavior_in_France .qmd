@@ -755,10 +755,6 @@ list(
 )
 ```
 
-**WE NEED TO DO SOME MORE DIGGING FOR MOB_PRO_CLEANED (see if some variable names
-should be the same as for other datasets), but the data set is so big
-to visualize :( need to spend some time on this specifically!**
-
 ## Removing the descriptive meta data
 
 ```{r}
@@ -914,22 +910,6 @@ list(
 ```
 
 ## Creating consistent observation names / give labels to factors for easier identification
-
-Step 1: Assign Labels to Factors
-
-Purpose: Replace numeric or cryptic factor levels with meaningful labels.
-
-Approach:
-Use the factor() function to assign labels to existing levels.
-Example: Replace 1, 2, 3 with "Urban", "Suburban", "Rural".
-
-Step 2: Determine Whether Factors Should Be Ordered
-
-Purpose: For ordinal factors (e.g., education level, income bracket), establish a natural order.
-
-Approach:
-Use the factor() function with the ordered = TRUE argument.
-Example: For education levels, "Primary" < "Secondary" < "Tertiary".
 
 ### Iltduu Sexe Trans Dataset
 
@@ -1617,6 +1597,141 @@ print(missing_intercommunal_code)
 Métropole du Grand Paris arrives 18th in number of stops. Seems odd and unlikely.
 
 We should still handle the "NA" in the resulting dataset.
+
+### Add missing codeEPCI to demo_cleaned
+
+```{r}
+# Add 16 missing codeEPCI to demo_cleaned (set as NA for the corresponding columns)
+missing_epci_to_add <- missing_epci_details_unique %>%
+  filter(codeEPCI %in% missing_epci_codes[1:16])  # Assuming we add 16 missing values
+
+# Create a new data frame with the missing entries to add to demo_cleaned
+missing_epci_to_add <- missing_epci_to_add %>%
+  mutate(
+    nb_stops = NA,  # Assuming nb_stops needs to be set to NA
+    # Add other necessary columns with NA values if needed, based on your analysis
+    other_columns = NA  # Example placeholder for other columns you might need to add
+  )
+
+# Append the missing EPCI to demo_cleaned
+demo_cleaned <- demo_cleaned %>%
+  bind_rows(missing_epci_to_add)
+
+# View the updated demo_cleaned dataset
+head(demo_cleaned)
+```
+
+### Ensure All CodeEPCI Identifiers Are Consistent
+
+```{r}
+# Step 1: Check for codeEPCI consistency across datasets
+
+# Check the type and structure of the 'codeEPCI' column in all datasets
+str(demo_cleaned$intercommunal_code)  # Check type in demo_cleaned
+str(stops_summary$codeEPCI)          # Check type in stops_summary
+str(COM_to_EPCI_filtered$codeEPCI)   # Check type in COM_to_EPCI_filtered
+
+# Ensure 'codeEPCI' is of the same type across all datasets (convert if needed)
+# If it's not a consistent type (e.g., one is numeric and the others are character),
+# we'll convert them to the same type.
+
+demo_cleaned$intercommunal_code <- as.character(demo_cleaned$intercommunal_code)
+stops_summary$codeEPCI <- as.character(stops_summary$codeEPCI)
+COM_to_EPCI_filtered$codeEPCI <- as.character(COM_to_EPCI_filtered$codeEPCI)
+
+# Check for missing codeEPCI in demo_cleaned compared to stops_summary and COM_to_EPCI_filtered
+missing_in_demo <- setdiff(COM_to_EPCI_filtered$codeEPCI, demo_cleaned$intercommunal_code)
+missing_in_stops <- setdiff(demo_cleaned$intercommunal_code, stops_summary$codeEPCI)
+
+# Display the missing values
+print("Missing codeEPCI in demo_cleaned:")
+print(missing_in_demo)
+
+print("Missing codeEPCI in stops_summary:")
+print(missing_in_stops)
+
+# If there are missing EPCI codes, you might need to handle them (e.g., impute or remove these rows)
+# Check the number of missing codes
+cat("Number of missing codeEPCI in demo_cleaned:", length(missing_in_demo), "\n")
+cat("Number of missing codeEPCI in stops_summary:", length(missing_in_stops), "\n")
+```
+
+### Handle missing two wheeler observations in mob pro dataset
+
+```{r}
+# Step 2: Handle missing values in nb_household_two_wheelers
+
+# Calculate the proportion of NaN (missing) values in nb_household_two_wheelers
+nan_proportion <- sum(is.na(mob_pro_aggregated$nb_household_two_wheelers)) / nrow(mob_pro_aggregated)
+cat("Proportion of NaN in nb_household_two_wheelers: ", nan_proportion, "\n")
+
+# If NaN proportion is significant (e.g., more than 30%), decide on an action
+if (nan_proportion > 0.3) {
+  cat("More than 30% missing values. Considering removing nb_household_two_wheelers.\n")
+  
+  # Option 1: Remove the column entirely
+  mob_pro_aggregated <- mob_pro_aggregated %>%
+    select(-nb_household_two_wheelers)
+  
+  # Option 2: Alternatively, you could rename NaN values to something more meaningful (if appropriate)
+  # mob_pro_cleaned <- mob_pro_cleaned %>%
+  #   mutate(nb_household_two_wheelers = ifelse(is.na(nb_household_two_wheelers), "Unknown", nb_household_two_wheelers))
+} else {
+  cat("Less than 30% missing values. Renaming or imputing missing values.\n")
+  
+  # Option to rename NaN values to something like "Unknown"
+  mob_pro_aggregated <- mob_pro_aggregated %>%
+    mutate(nb_household_two_wheelers = ifelse(is.na(nb_household_two_wheelers), "Unknown", nb_household_two_wheelers))
+}
+
+# Check the updated dataset
+summary(mob_pro_aggregated$nb_household_two_wheelers)
+```
+
+Datasets to be Used for Joining (to be confirmed by Mathilde):
+demo_cleaned:
+
+This dataset is used as the base for the join because it contains the codeEPCI identifiers (the intercommunalité identifier).
+Last version: We’ve already cleaned demo_cleaned, and we've added codeEPCI entries to fill any missing values where needed.
+iltduu_aggregated:
+
+Contains aggregated data related to workplace indicators, transportation modes, and demographic information at the Intercommunalité level.
+Last version: After aggregating the data by codeEPCI, age_five_year_slice, and other factors, this dataset is ready to join with demo_cleaned.
+merged_local_mob_revenus_aggregated:
+
+This dataset provides aggregated mobility and revenue-related data at the Intercommunalité level.
+Last version: After performing weighted averages and sums at the Intercommunalité level, this dataset is now ready for the join.
+stops_summary:
+
+Contains data related to the number of stops per Intercommunalité.
+Last version: We updated the dataset to ensure missing codeEPCI values were handled, resulting in stops_summary_updated, which is ready for joining.
+mob_pro_aggregated:
+
+This dataset includes aggregated socio-economic and household-level data at the Intercommunalité level.
+Last version: After aggregating the relevant variables (e.g., nb_household_two_wheelers, number_car_household, number_people_household), this dataset is ready for the join.
+
+### Handling the duplicate variables in demo_cleaned
+
+```{r}
+# Step 1: Fill the missing values in intercommunal_code and intercommunal_label
+demo_cleaned <- demo_cleaned %>%
+  mutate(
+    intercommunal_code = ifelse(is.na(intercommunal_code), codeEPCI, intercommunal_code),
+    intercommunal_label = ifelse(is.na(intercommunal_label), nomEPCI, intercommunal_label)
+  )
+
+# Step 2: Remove the redundant codeEPCI and nomEPCI columns
+demo_cleaned <- demo_cleaned %>%
+  select(-codeEPCI, -nomEPCI)
+
+# Step 3: Rename intercommunal_code to codeEPCI
+demo_cleaned <- demo_cleaned %>%
+  rename(codeEPCI = intercommunal_code)
+
+# Check the final result
+summary(demo_cleaned)
+```
+
 
 ## Notes
 
