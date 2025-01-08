@@ -1811,6 +1811,10 @@ mob_pro_aggregated_final
 iltduu_aggregated_final
 demo_stops_and_revenues
 
+Next steps: when joining, some variables describe the same thing but might differ, need to take average (example. population)
+ensure the names are the same
+join.
+
 ## Notes
 
 ## Choosing an appropriate join
