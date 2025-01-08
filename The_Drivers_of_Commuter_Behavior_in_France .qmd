@@ -1630,27 +1630,19 @@ if (nan_proportion > 0.3) {
 summary(mob_pro_aggregated$nb_household_two_wheelers)
 ```
 
-### Handling the duplicate variables in demo_stops
+Latest Datasets and Their Contents:
 
-```{r}
-# Step 1: Fill missing values in intercommunal_code and intercommunal_label using codeEPCI and nomEPCI
-demo_stops <- demo_stops %>%
-  mutate(
-    intercommunal_code = ifelse(is.na(intercommunal_code), codeEPCI, intercommunal_code),
-    intercommunal_label = ifelse(is.na(intercommunal_label), nomEPCI, intercommunal_label)
-  )
+demo_stops
+This is the primary dataset after joining demo_cleaned and stops_summary_updated. It contains demographic data at the intercommunalité level (from demo_cleaned) along with the number of public transportation stops (from stops_summary_updated). Any missing values in the nb_stops column have been filled, and the intercommunal_code and intercommunal_label are updated based on the codeEPCI and nomEPCI from stops_summary_updated.
 
-# Step 2: Remove the redundant columns (codeEPCI and nomEPCI)
-demo_stops <- demo_stops %>%
-  select(-codeEPCI, -nomEPCI)
+iltduu_aggregated
+Contains aggregated transportation data (e.g., types of transportation, urban workplace indicators, and socio-economic data) from iltduu_sexe_trans_cleaned at the intercommunalité level.
 
-# Step 3: Rename intercommunal_code to codeEPCI
-demo_stops <- demo_stops %>%
-  rename(codeEPCI = intercommunal_code)
+merged_local_mob_revenus_aggregated
+Contains aggregated mobility and revenue data, including variables like the share of people using different modes of transportation and other economic indicators, aggregated at the intercommunalité level.
 
-# Check the resulting dataset
-head(demo_stops)
-```
+mob_pro_aggregated
+Contains aggregated socio-economic data at the intercommunalité level, including variables like age groups, socio-professional categories, household data (e.g., number of people per household, number of cars), and employment conditions. Missing values in the nb_household_two_wheelers column have been handled.
 
 ## Notes
 
