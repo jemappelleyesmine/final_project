@@ -1667,6 +1667,8 @@ cat("Unique codeEPCI in iltduu_aggregated: ", length(iltduu_unique_codes), "\n")
 cat("Unique codeEPCI in merged_local_mob_revenus_aggregated: ", length(merged_local_mob_revenus_unique_codes), "\n")
 ```
 
+### Only keeping the observations with codeEPCI that are common to all datasets
+
 ```{r}
 # Step 1: Identify the common codeEPCI values across all datasets
 common_codeEPCI <- Reduce(intersect, list(
@@ -1689,13 +1691,125 @@ iltduu_aggregated_filtered <- iltduu_aggregated %>%
 merged_local_mob_revenus_aggregated_filtered <- merged_local_mob_revenus_aggregated %>%
   filter(codeEPCI %in% common_codeEPCI)
 
-# Step 3: Check the number of rows in each filtered dataset
-cat("Number of rows in demo_stops_filtered: ", nrow(demo_stops_filtered), "\n")
-cat("Number of rows in mob_pro_aggregated_filtered: ", nrow(mob_pro_aggregated_filtered), "\n")
-cat("Number of rows in iltduu_aggregated_filtered: ", nrow(iltduu_aggregated_filtered), "\n")
-cat("Number of rows in merged_local_mob_revenus_aggregated_filtered: ", nrow(merged_local_mob_revenus_aggregated_filtered), "\n")
+# Step 3: Check the number of unique codeEPCI values in each filtered dataset
+cat("Unique codeEPCI in demo_stops_filtered: ", length(unique(demo_stops_filtered$codeEPCI)), "\n")
+cat("Unique codeEPCI in mob_pro_aggregated_filtered: ", length(unique(mob_pro_aggregated_filtered$codeEPCI)), "\n")
+cat("Unique codeEPCI in iltduu_aggregated_filtered: ", length(unique(iltduu_aggregated_filtered$codeEPCI)), "\n")
+cat("Unique codeEPCI in merged_local_mob_revenus_aggregated_filtered: ", length(unique(merged_local_mob_revenus_aggregated_filtered$codeEPCI)), "\n")
 ```
 
+### Joining demo_stops_filtered and merged_local_mob_revenus_aggregated_filtered
+
+```{r}
+# Step 1: Join demo_stops_filtered and merged_local_mob_revenus_aggregated_filtered
+demo_stops_and_revenues <- demo_stops_filtered %>%
+  left_join(merged_local_mob_revenus_aggregated_filtered, by = "codeEPCI")
+
+# Check the result
+cat("Number of rows after demo_stops and merged_local_mob_revenus_aggregated join: ", nrow(demo_stops_and_revenues), "\n")
+head(demo_stops_and_revenues)
+```
+
+After following the steps, the latest datasets to be used for the join are:
+
+demo_stops_and_revenues:
+This dataset is the result of joining demo_stops_filtered and merged_local_mob_revenus_aggregated_filtered. It contains the codeEPCI and corresponding public transport stop data along with revenue data at the intercommunalité level.
+
+iltduu_aggregated_filtered:
+This dataset contains aggregated transportation-related data (e.g., worker transport shares, household car shares) at the codeEPCI level, after the necessary aggregation.
+
+mob_pro_aggregated_filtered:
+This dataset contains aggregated socio-economic data (e.g., number of households with two-wheelers, number of people per household) at the codeEPCI level, after the necessary aggregation.
+
+### Aggregating iltduu_aggregated_filtered
+
+```{r}
+# Summarize data at the codeEPCI level for iltduu_aggregated_filtered
+iltduu_aggregated_final <- iltduu_aggregated_filtered %>%
+  group_by(codeEPCI) %>%
+  summarise(
+    total_nb = sum(nb, na.rm = TRUE),
+    male_share = sum(nb[sexe == "Male"], na.rm = TRUE) / total_nb,
+    female_share = sum(nb[sexe == "Female"], na.rm = TRUE) / total_nb,
+    # Summarize other variables as necessary (e.g., transportation mode)
+    no_transport_share = sum(nb[main_transportation_work == "No Transport"], na.rm = TRUE) / total_nb,
+    on_foot_share = sum(nb[main_transportation_work == "On Foot"], na.rm = TRUE) / total_nb,
+    bicycle_share = sum(nb[main_transportation_work == "Bicycle"], na.rm = TRUE) / total_nb,
+    motorized_two_wheelers_share = sum(nb[main_transportation_work == "Motorized Two Wheelers"], na.rm = TRUE) / total_nb,
+    car_truck_van_share = sum(nb[main_transportation_work == "Car, Truck, Van"], na.rm = TRUE) / total_nb,
+    public_transport_share = sum(nb[main_transportation_work == "Public Transport"], na.rm = TRUE) / total_nb,
+    .groups = "drop"
+  )
+```
+
+### Aggregating mob_pro_aggregated_filtered
+
+```{r}
+# Summarize data at the codeEPCI level for mob_pro_aggregated_filtered
+mob_pro_aggregated_final <- mob_pro_aggregated_filtered %>%
+  group_by(codeEPCI) %>%
+  summarise(
+    total_people = sum(number_people_household, na.rm = TRUE),  # Total people per codeEPCI
+    total_cars = sum(number_car_household, na.rm = TRUE),        # Total cars per codeEPCI
+
+    # Calculate share for age categories
+    age_15_19_share = sum(number_people_household[age_five_year_slice == "15-19 years"], na.rm = TRUE) / total_people,
+    age_20_24_share = sum(number_people_household[age_five_year_slice == "20-24 years"], na.rm = TRUE) / total_people,
+    age_25_29_share = sum(number_people_household[age_five_year_slice == "25-29 years"], na.rm = TRUE) / total_people,
+    age_30_34_share = sum(number_people_household[age_five_year_slice == "30-34 years"], na.rm = TRUE) / total_people,
+    age_35_39_share = sum(number_people_household[age_five_year_slice == "35-39 years"], na.rm = TRUE) / total_people,
+    age_40_44_share = sum(number_people_household[age_five_year_slice == "40-44 years"], na.rm = TRUE) / total_people,
+    age_45_49_share = sum(number_people_household[age_five_year_slice == "45-49 years"], na.rm = TRUE) / total_people,
+    age_50_54_share = sum(number_people_household[age_five_year_slice == "50-54 years"], na.rm = TRUE) / total_people,
+    age_55_59_share = sum(number_people_household[age_five_year_slice == "55-59 years"], na.rm = TRUE) / total_people,
+    age_60_64_share = sum(number_people_household[age_five_year_slice == "60-64 years"], na.rm = TRUE) / total_people,
+    age_65_69_share = sum(number_people_household[age_five_year_slice == "65-69 years"], na.rm = TRUE) / total_people,
+    age_70_74_share = sum(number_people_household[age_five_year_slice == "70-74 years"], na.rm = TRUE) / total_people,
+    age_75_79_share = sum(number_people_household[age_five_year_slice == "75-79 years"], na.rm = TRUE) / total_people,
+    age_80_84_share = sum(number_people_household[age_five_year_slice == "80-84 years"], na.rm = TRUE) / total_people,
+    age_85_89_share = sum(number_people_household[age_five_year_slice == "85-89 years"], na.rm = TRUE) / total_people,
+    age_90_94_share = sum(number_people_household[age_five_year_slice == "90-94 years"], na.rm = TRUE) / total_people,
+    age_95_99_share = sum(number_people_household[age_five_year_slice == "95-99 years"], na.rm = TRUE) / total_people,
+
+    # Calculate share for socio-professional categories
+    agri_exploitants_share = sum(number_people_household[socio_professional_cat == "Agriculteurs exploitants"], na.rm = TRUE) / total_people,
+    artisans_share = sum(number_people_household[socio_professional_cat == "Artisans"], na.rm = TRUE) / total_people,
+    cadres_share = sum(number_people_household[socio_professional_cat == "Cadres"], na.rm = TRUE) / total_people,
+    professions_intermediaires_share = sum(number_people_household[socio_professional_cat == "Professions Intermédiaires"], na.rm = TRUE) / total_people,
+    employes_share = sum(number_people_household[socio_professional_cat == "Employés"], na.rm = TRUE) / total_people,
+    ouvriers_share = sum(number_people_household[socio_professional_cat == "Ouvriers"], na.rm = TRUE) / total_people,
+    
+    # Calculate share for highest qualification
+    no_schooling_share = sum(number_people_household[highest_qualification == "No schooling"], na.rm = TRUE) / total_people,
+    primary_or_lower_share = sum(number_people_household[highest_qualification == "Primary or lower"], na.rm = TRUE) / total_people,
+    secondary_or_higher_share = sum(number_people_household[highest_qualification == "Secondary or higher"], na.rm = TRUE) / total_people,
+    cep_share = sum(number_people_household[highest_qualification == "CEP"], na.rm = TRUE) / total_people,
+    bepc_share = sum(number_people_household[highest_qualification == "BEPC"], na.rm = TRUE) / total_people,
+    cap_bep_share = sum(number_people_household[highest_qualification == "CAP/BEP"], na.rm = TRUE) / total_people,
+    general_bac_share = sum(number_people_household[highest_qualification == "General Bac"], na.rm = TRUE) / total_people,
+    professional_bac_share = sum(number_people_household[highest_qualification == "Professional Bac"], na.rm = TRUE) / total_people,
+    bts_dut_share = sum(number_people_household[highest_qualification == "BTS/DUT"], na.rm = TRUE) / total_people,
+    bachelor_share = sum(number_people_household[highest_qualification == "Bachelor"], na.rm = TRUE) / total_people,
+    master_share = sum(number_people_household[highest_qualification == "Master"], na.rm = TRUE) / total_people,
+    doctorate_share = sum(number_people_household[highest_qualification == "Doctorate"], na.rm = TRUE) / total_people,
+ 
+    # Calculate share for workplace indicator
+    within_residence_commune_share = sum(number_people_household[workplace_indicator == "Within Residence Commune"], na.rm = TRUE) / total_people,
+    other_commune_same_dept_share = sum(number_people_household[workplace_indicator == "Other Commune (Same Dept.)"], na.rm = TRUE) / total_people,
+    other_dept_same_region_share = sum(number_people_household[workplace_indicator == "Other Dept. (Same Region)"], na.rm = TRUE) / total_people,
+    outside_region_metropole_share = sum(number_people_household[workplace_indicator == "Outside Region: Metropole"], na.rm = TRUE) / total_people,
+    outside_region_dom_share = sum(number_people_household[workplace_indicator == "Outside Region: DOM"], na.rm = TRUE) / total_people,
+    outside_region_com_share = sum(number_people_household[workplace_indicator == "Outside Region: COM"], na.rm = TRUE) / total_people,
+    abroad_share = sum(number_people_household[workplace_indicator == "Abroad"], na.rm = TRUE) / total_people,
+    .groups = "drop"
+  )
+```
+
+Final datasets for joining:
+
+mob_pro_aggregated_final
+iltduu_aggregated_final
+demo_stops_and_revenues
 
 ## Notes
 
