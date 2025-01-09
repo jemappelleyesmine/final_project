@@ -1857,9 +1857,7 @@ write.csv(final_dataset, "final_dataset.csv", row.names = FALSE)
 ```
 
 
-# After the join
-
-## Data cleaning
+# Cleaning the join
 
 ## 1. Remove Missing Values
 
@@ -1944,15 +1942,35 @@ str(final_dataset_4)
 final_dataset_5 <- final_dataset_4 %>% select(-total_nb, -number_household_2021)
 ```
 
+## 6. Detect Outliers
 
+```{r}
+numeric_cols <- final_dataset_5 %>% select(where(is.numeric))
 
+outliers <- numeric_cols %>%
+  summarise(across(everything(), ~ sum(. > quantile(., 0.75, na.rm = TRUE) + 1.5 * IQR(.) |
+                                       . < quantile(., 0.25, na.rm = TRUE) - 1.5 * IQR(.), na.rm = TRUE)))
 
+print(outliers)
+```
+## 6. Handle Redundant Columns
 
-  
-# Writing cleaned data
+```{r}
+# Drop columns with excessive missing values (e.g., >50% NA)
+threshold <- 0.5 * nrow(final_dataset_5)
+cols_to_drop <- missing_summary %>%
+  filter(MissingCount > threshold) %>%
+  pull(Variable)
+```
 
-- Save cleaned and joined datasets for future use:
-  - Example: write.csv(cleaned_data, "cleaned_data.csv").
+## 7. Save the Cleaned Dataset
+```{r}
+
+final_dataset_cleaned <- final_dataset_5
+
+# Save the cleaned dataset to a CSV file
+write.csv(final_dataset_cleaned, "cleaned_final_dataset.csv", row.names = FALSE)
+```
 
 # First exploratory analysis post-join
 
