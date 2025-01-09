@@ -1973,8 +1973,27 @@ final_dataset_5 <- final_dataset_5 %>%
   rename(intercommunal_population_2021 = municipal_population_2021)
 ```
 
+
 ```{r}
 final_dataset_cleaned <- final_dataset_5
+
+# List of columns to exclude
+excluded_columns <- c("share_bike_for_work", 
+                      "share_worker_public_transport", 
+                      "share_car_for_work", 
+                      "share_household_car")
+
+# Identify columns with "share" in their names and not in the excluded list
+share_columns <- names(final_dataset_cleaned)[
+  grepl("share", names(final_dataset_cleaned)) & 
+  !(names(final_dataset_cleaned) %in% excluded_columns)
+]
+
+# Multiply the relevant columns by 100
+final_dataset_cleaned[share_columns] <- lapply(
+  final_dataset_cleaned[share_columns], 
+  function(x) x * 100
+)
 
 # Save the cleaned dataset to a CSV file
 write.csv(final_dataset_cleaned, "final_dataset_cleaned.csv", row.names = FALSE)
@@ -2231,10 +2250,12 @@ Commuting mode shares (e.g., public transport, car) and population density.
 Income levels and transportation choices.
 Urban/rural classification and commuting behavior.
 Distribution Analysis: Plot histograms or density plots for key variables like income, population density, and commuting distances.
+
 2. Statistical Testing
 Use chi-squared tests (chisq.test()) for dependencies between categorical variables. For instance:
 Urban/rural classification vs. preferred transportation mode.
 Socio-professional category vs. car ownership.
+
 3. Causal Analysis with Linear Models
 Fit linear models (lm()) to explore potential causal relationships
 Interpret coefficients to understand the impact of each variable.
