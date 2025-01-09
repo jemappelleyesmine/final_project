@@ -19,57 +19,112 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Table of Contents
+
+1. [Introduction](#introduction)
+2. [Datasets](#datasets)
+   - [Source Descriptions](#source-descriptions)
+   - [Loading and Preparing Datasets](#loading-and-preparing-datasets)
+3. [Project Description](#project-description)
+   - [Research Questions](#research-questions)
+   - [Challenges](#challenges)
+4. [Data Cleaning](#data-cleaning)
+   - [Missing Values](#missing-values)
+   - [Variable Renaming and Normalization](#variable-renaming-and-normalization)
+   - [Data Aggregation](#data-aggregation)
+5. [Data Joining](#data-joining)
+   - [Steps to Consolidate Data](#steps-to-consolidate-data)
+6. [Exploratory Data Analysis (EDA)](#exploratory-data-analysis)
+   - [Initial Summary Statistics](#initial-summary-statistics)
+   - [Visualizations](#visualizations)
+7. [Statistical Testing](#statistical-testing)
+   - [Urban/Rural Classification vs. Transportation Modes](#urban-rural-vs-transportation)
+   - [Socio-Professional Categories vs. Car Ownership](#socio-professional-vs-car-ownership)
+8. [Causal Analysis](#causal-analysis)
+   - [Linear Models for Commuter Behavior](#linear-models)
+
 Link to the github project:
 https://github.com/jemappelleyesmine/final_project
 
+# Introduction 
+
+WRITE INTO
+
+
 # Datasets
 
-## Links to the sources
+## Source Descriptions
 
-### INSEE_Statistiques_locales_demographie.csv
+This section describes the datasets used in the analysis, including sources and how the data was selected.
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
-reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
-DÉMOGRAPHIE, then select: - Population municipale (historique depuis
-1876) 2021 - Densité de population (historique depuis 1876) 2021 In
-"CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select: -
-Intercommunalité-Métropole
+### INSEE Demographic Data
 
-### INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv
+INSEE_Statistiques_locales_demographie.csv
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
-reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
-REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select: - Nb de ménages
-fiscaux 2021 - Médiane du niveau de vie 2021 In "CHANGER LE DÉCOUPAGE
-GÉOGRAPHIQUE", select: - Commune
+- **Source**: [INSEE Demographic Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
+- **Key Variables**: Population, Population Density.
+- **Geographical Level**: Intercommunalité.
 
-### INSEE_Statistiques_locales_territoires_ville_quartiers.csv
+To reproduce the data selection:
+In "CHOISIR DES INDICATEURS", go to DÉMOGRAPHIE, then select:
+- Population municipale (historique depuis 1876) 2021
+- Densité de population (historique depuis 1876) 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Intercommunalité-Métropole
 
-Source: https://statistiques-locales.insee.fr/#view=map1&c=indicator To
-reproduce the data selection: In "CHOISIR DES INDICATEURS", go to
-TERRITOIRES, VILLES ET QUARTIERS, then select: - Part des actifs occupés
-de 15 ans ou plus les transports en commun 2021 - Part des ménages ayant
-au moins 1 voiture 2021 - Part des actifs occ 15 ans ou plus voiture
-pour travailler 2021 - Part des actifs occ 15 ans ou plus vélo pour
-travailler 2021 In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select: -
-Commune
+### INSEE Income Data
 
-### stops_france.csv.gz
+INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv
 
-Source:
-https://transport.data.gouv.fr/datasets/arrets-de-transport-en-france
+- **Source**: [INSEE Income Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
+- **Key Variables**: Median Income, Number of Households.
+- **Geographical Level**: Commune.
 
-### RP2021_mobpro.zip
+To reproduce the data selection:
+- In "CHOISIR DES INDICATEURS", go to REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select:
+- Nb de ménages fiscaux 2021
+- Médiane du niveau de vie 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Commune
 
-Source: https://www.insee.fr/fr/statistiques/8205896?sommaire=8205966
+### INSEE Commuter Data
 
-### BTT_TD_NAV2B_2017.zip
+INSEE_Statistiques_locales_territoires_ville_quartiers.csv
 
-Source:
-https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter
-To reproduce the data selection: "NAV2B – Population active de 15 ans ou
-plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et
-moyen de transport"
+- **Source**: [INSEE Commuter Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
+- **Key Variables**: Number of housholds owning a car, Use of types of transportation
+- **Geographical Level**: Commune.
+
+To reproduce the data selection:
+In "CHOISIR DES INDICATEURS", go to TERRITOIRES, VILLES ET QUARTIERS, then select:
+- Part des actifs occupés de 15 ans ou plus les transports en commun 2021
+- Part des ménages ayant au moins 1 voiture 2021
+- Part des actifs occ 15 ans ou plus voiture pour travailler 2021
+- Part des actifs occ 15 ans ou plus vélo pour travailler 2021
+In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
+- Commune
+
+### Experimental Dataset: Public Transport Stops
+
+stops_france.csv.gz
+
+- **Source**: [transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/arrets-de-transport-en-france)
+- **Key Variables**: Stop Name, Location (Lat/Lon).
+
+### INSEE MOB PRO
+
+RP2021_mobpro.zip
+
+- **Source**: [INSEE MOB PRO](https://www.insee.fr/fr/statistiques/8205896?sommaire=8205966)
+
+### INSEE MOB TRANS
+
+BTT_TD_NAV2B_2017.zip
+
+- **Source**: [INSEE MOB TRANS](https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter)
+
+To reproduce the data selection:
+"NAV2B – Population active de 15 ans ou plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et moyen de transport"
 
 ## Loading the three final datasets
 
