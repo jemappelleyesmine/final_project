@@ -1966,6 +1966,10 @@ cols_to_drop <- missing_summary %>%
 ## 7. Save the Cleaned Dataset
 ```{r}
 
+#renaming one variable
+final_dataset_5 <- final_dataset_5 %>%
+  rename(intercommunal_population_2021 = municipal_population_2021)
+
 final_dataset_cleaned <- final_dataset_5
 
 # Save the cleaned dataset to a CSV file
@@ -1974,16 +1978,31 @@ write.csv(final_dataset_cleaned, "cleaned_final_dataset.csv", row.names = FALSE)
 
 # First exploratory analysis post-join
 
-## Preliminary summarization (to ensure correctness)
+## 1. Generate Summary Statistics
 
-- Summarize joined datasets to ensure correctness:
-  - Use summary(), head(), and nrow() to inspect results.
+```{r}
+summary(final_dataset_cleaned)
+```
 
-## Preliminary visualization (to check consistency)
+Some columns, such as outside_region_dom_share, outside_region_com_share, and abroad_share, have minimum and maximum values of zero or near-zero. This indicates that these variables might have very low representation or missing data across our dataset.
 
-- Visualize key variables across the merged dataset to check consistency:
-  - For example, compare population density against transport usage.
- 
-# Data Exploration
+Intercommunautés where nb_stops is equal to zero. 
 
-# Data Visualization
+Communauté de communes des Savanes (200027548)
+Communauté de communes du Pays de Trie et du Magnoac (200070795)
+Communauté de communes Saint Cyr Mère Boitier (200071645)
+Communauté de communes du Pays de Sancey-Belleherbe (242504371)
+Communauté de communes Altitude 800 (242504488)
+Communauté de communes du Causse de Labastide-Murat (244600573)
+Communauté de communes du Pays de Duras (244700449)
+Communauté de communes du Pays de Villersexel (247000714)
+Communauté de communes de Semur-en-Brionnais (247103864)
+Communauté de communes de Marie-Galante (249710047)
+Communauté d'agglomération Grand Sud Caraïbe (249710070)
+Communauté de communes de l'Ouest Guyanais (249730037)
+
+Columns like municipal_population_2021 and population_density_2021 have extremely high maximum values (7103801 for population and 8724.50 for density). This is expected and corresponds to Paris.
+
+Many shares (e.g., public_transport_share, bicycle_share) are skewed toward the lower end, with very small means or medians compared to their maximum values. This probably reflects actual behaviors (e.g., low public transport usage in rural areas).
+
+Age group shares like age_65_74_share and age_85_94_share have minimum values of zero. This is most likely due to missing data.
