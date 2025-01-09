@@ -1811,9 +1811,53 @@ mob_pro_aggregated_final
 iltduu_aggregated_final
 demo_stops_and_revenues
 
-Next steps: when joining, some variables describe the same thing but might differ, need to take average (example. population)
-ensure the names are the same
-join.
+## Modifying the age category
+
+```{r}
+# Aggregate age slices into 10-year intervals
+mob_pro_aggregated_final <- mob_pro_aggregated_final %>%
+  mutate(
+    age_15_24_share = age_15_19_share + age_20_24_share,
+    age_25_34_share = age_25_29_share + age_30_34_share,
+    age_35_44_share = age_35_39_share + age_40_44_share,
+    age_45_54_share = age_45_49_share + age_50_54_share,
+    age_55_64_share = age_55_59_share + age_60_64_share,
+    age_65_74_share = age_65_69_share + age_70_74_share,
+    age_75_84_share = age_75_79_share + age_80_84_share,
+    age_85_94_share = age_85_89_share + age_90_94_share
+  ) %>%
+  select(
+    -age_15_19_share, -age_20_24_share, 
+    -age_25_29_share, -age_30_34_share, 
+    -age_35_39_share, -age_40_44_share, 
+    -age_45_49_share, -age_50_54_share, 
+    -age_55_59_share, -age_60_64_share, 
+    -age_65_69_share, -age_70_74_share, 
+    -age_75_79_share, -age_80_84_share, 
+    -age_85_89_share, -age_90_94_share,
+  )
+
+```
+
+```{r}
+mob_pro_aggregated_final <- mob_pro_aggregated_final %>% select(-age_95_99_share)
+```
+
+
+## Final joining
+
+```{r}
+# Perform the joins
+final_dataset <- demo_stops_and_revenues %>%
+  left_join(iltduu_aggregated_final, by = "codeEPCI") %>%
+  left_join(mob_pro_aggregated_final, by = "codeEPCI")
+
+# Optionally save the final dataset
+write.csv(final_dataset, "final_dataset.csv", row.names = FALSE)
+```
+
+
+
 
 ## Notes
 
