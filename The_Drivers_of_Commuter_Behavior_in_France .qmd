@@ -2227,6 +2227,49 @@ ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_worker_
   labs(title = "Population Density vs Public Transport Share")
 
 ```
+## Last comments before analysis
+
+These intercommunautés have a median living standard of "0" due to missing valus and should be excluded when we conduct the analysis.
+
+Communauté de communes de l'Ouest Guyanais (249730037)
+Communauté de communes des Savanes (200027548)
+Communauté de communes de Marie-Galante (249710047)
+Communauté d'agglomération Grand Sud Caraïbe (249710070)
+Communauté de communes de l'Est Guyanais (249730052)
+Communauté d'agglomération du Nord Basse-Terre (249710062)
+Communauté d'agglomération du Nord Grande Terre (200044691)
+Communauté d'agglomération du Centre Littoral (249730045)
+Communauté d'agglomération La Riviera du Levant (200041507)
+Communauté d'agglomération Cap Excellence (200018653)
+
+```{r}
+# Create a vector of codeEPCI values
+excluded_living_standard <- c(
+  249730037, # Communauté de communes de l'Ouest Guyanais
+  200027548, # Communauté de communes des Savanes
+  249710047, # Communauté de communes de Marie-Galante
+  249710070, # Communauté d'agglomération Grand Sud Caraïbe
+  249730052, # Communauté de communes de l'Est Guyanais
+  249710062, # Communauté d'agglomération du Nord Basse-Terre
+  200044691, # Communauté d'agglomération du Nord Grande Terre
+  249730045, # Communauté d'agglomération du Centre Littoral
+  200041507, # Communauté d'agglomération La Riviera du Levant
+  200018653  # Communauté d'agglomération Cap Excellence
+)
+```
+
+```{r}
+# Create a vector of the column names
+transport_share_columns <- c(
+  "share_worker_public_transport",
+  "share_household_car",
+  "share_car_for_work",
+  "share_bike_for_work"
+)
+
+final_dataset_cleaned2.0 <- final_dataset_cleaned %>% select(-transport_share_columns)
+```
+
 
 # Data analysis
 
@@ -2267,7 +2310,7 @@ Ensure confounding variables (e.g., age distribution, education levels) are incl
 
 ```{r}
 # Scatterplot for Public Transport Share vs. Population Density
-ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_worker_public_transport)) +
+ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = public_transport_share)) +
   geom_point() +
   labs(
     title = "Public Transport Share vs. Population Density",
@@ -2277,7 +2320,7 @@ ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_worker_
   theme_minimal()
 
 # Scatterplot for Car Share vs. Population Density
-ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_car_for_work)) +
+ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = car_truck_van_share)) +
   geom_point() +
   labs(
     title = "Car Share vs. Population Density",
@@ -2291,7 +2334,7 @@ ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_car_for
 
 ```{r}
 # Create income categories
-final_dataset_cleaned_2 <- final_dataset_cleaned %>%
+final_dataset_cleaned2.0_2 <- final_dataset_cleaned2.0 %>%
   mutate(income_category = cut(
     median_living_standard_2021,
     breaks = quantile(median_living_standard_2021, probs = seq(0, 1, by = 0.25), na.rm = TRUE),
@@ -2299,10 +2342,25 @@ final_dataset_cleaned_2 <- final_dataset_cleaned %>%
     include.lowest = TRUE
   ))
 
+
 # Melt the data for transportation modes
-melted_data <- final_dataset_cleaned_2 %>%
-  select(income_category, share_worker_public_transport, share_car_for_work, share_bike_for_work) %>%
-  pivot_longer(cols = starts_with("share"), names_to = "Transport_Mode", values_to = "Share")
+melted_data <- final_dataset_cleaned %>%
+  select(
+    income_category,
+    no_transport_share,
+    on_foot_share,
+    bicycle_share,
+    motorized_two_wheelers_share,
+    car_truck_van_share,
+    public_transport_share
+  ) %>%
+  pivot_longer(
+    cols = c(no_transport_share, on_foot_share, bicycle_share, 
+             motorized_two_wheelers_share, car_truck_van_share, 
+             public_transport_share),
+    names_to = "Transport_Mode",
+    values_to = "Share"
+  )
 
 # Bar plot
 ggplot(melted_data, aes(x = income_category, y = Share, fill = Transport_Mode)) +
@@ -2318,12 +2376,14 @@ ggplot(melted_data, aes(x = income_category, y = Share, fill = Transport_Mode)) 
 ```
 ### 3. Urban/Rural Classification vs. Commuting Behavior
 
+Le seuil de 150 habitants par kilomètre carré provient de la définition officielle de l'Insee pour les unités urbaines, qui servent à différencier les zones urbaines des zones rurales en France.
+
 ```{r}
-final_dataset_cleaned_3 <- final_dataset_cleaned %>%
+final_dataset_cleaned2.0_3 <- final_dataset_cleaned2.0 %>%
   mutate(urban_rural = ifelse(population_density_2021 > 150, "Urban", "Rural"))
 
 # Boxplot for Urban/Rural vs. Car Share for Work
-ggplot(final_dataset_cleaned_3, aes(x = urban_rural, y = share_car_for_work)) +
+ggplot(final_dataset_cleaned2.0_3, aes(x = urban_rural, y = car_truck_van_share)) +
   geom_boxplot() +
   labs(
     title = "Car Share for Work by Urban/Rural Classification",
