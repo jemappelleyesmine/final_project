@@ -1,7 +1,7 @@
 ---
 title: "The Drivers of Commuter Behavior in France"
 author: "Mathilde VALLAT, Yesmine HACHANA"
-format: html
+format: pdf
 editor: 
   markdown: 
     wrap: 72
@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
   warning = FALSE  # Suppress warnings
 )
 ```
-
 
 Link to the github project:
 https://github.com/jemappelleyesmine/final_project
@@ -2262,7 +2261,6 @@ excluded_living_standard <- c(
 # Create a vector of the column names
 transport_share_columns <- c(
   "share_worker_public_transport",
-  "share_household_car",
   "share_car_for_work",
   "share_bike_for_work"
 )
@@ -2443,5 +2441,88 @@ ggplot(final_dataset_cleaned2.0, aes(x = nb_stops, y = public_transport_share)) 
 The Spearman correlation is stronger than the Pearson correlation, which might indicate that the relationship is not strictly linear (fx.it could plateau at higher numbers of stops or be influenced by outliers).
 
 
+## 2. Statistical Testing
+
+### 1. Urban/Rural Classification vs. Preferred Transportation Mode
+
+```{r}
+# Create urban/rural classification
+final_dataset_cleaned2.0 <- final_dataset_cleaned2.0 %>%
+  mutate(urban_rural = ifelse(population_density_2021 > 150, "Urban", "Rural"))
+
+# Create contingency table
+urban_transport_table <- final_dataset_cleaned2.0 %>%
+  select(urban_rural, no_transport_share, on_foot_share, bicycle_share, 
+         motorized_two_wheelers_share, car_truck_van_share, public_transport_share) %>%
+  pivot_longer(cols = starts_with("no_transport_share"):starts_with("public_transport_share"),
+               names_to = "Transport_Mode", values_to = "Share") %>%
+  mutate(Transport_Mode = recode(
+    Transport_Mode,
+    "no_transport_share" = "No Transport",
+    "on_foot_share" = "On Foot",
+    "bicycle_share" = "Bicycle",
+    "motorized_two_wheelers_share" = "Two-Wheelers",
+    "car_truck_van_share" = "Car/Van",
+    "public_transport_share" = "Public Transport"
+  )) %>%
+  group_by(urban_rural, Transport_Mode) %>%
+  summarise(Total_Share = sum(Share), .groups = "drop") %>%
+  pivot_wider(names_from = Transport_Mode, values_from = Total_Share, values_fill = 0)
+
+# Convert to matrix
+urban_transport_matrix <- urban_transport_table %>%
+  select(-urban_rural) %>%
+  as.matrix()
+
+rownames(urban_transport_matrix) <- urban_transport_table$urban_rural
+
+# Perform chi-squared test
+chisq_test_urban_transport <- chisq.test(urban_transport_matrix)
+
+# Results
+chisq_test_urban_transport
+
+```
+
+There is evidence of a significant association between the variables.
+
+
+### 2. Socio-Professional Category vs. Car Ownership
+
+```{r}
+sum(is.na(final_dataset_cleaned2.0_4$socio_professional_cat))
+sum(is.na(final_dataset_cleaned2.0_4$car_ownership_category))
+
+nrow(final_dataset_cleaned2.0_4)
+length(final_dataset_cleaned2.0_4$socio_professional_cat)
+length(final_dataset_cleaned2.0_4$car_ownership_category)
+```
+
+
+```{r}
+# Step 1: Bin car ownership into categories
+final_dataset_cleaned2.0_4 <- final_dataset_cleaned2.0 %>%
+  mutate(
+    car_ownership_category = cut(
+      share_household_car,
+      breaks = c(-Inf, 80, 90, 100), # Adjust bins as needed
+      labels = c("Low", "Medium", "High"),
+      include.lowest = TRUE
+    )
+  )
+
+# Step 2: Create a contingency table
+contingency_table <- table(final_dataset_cleaned2.0_4$socio_professional_cat, final_dataset_cleaned2.0$car_ownership_category)
+
+# Step 3: Perform the Chi-Squared Test
+chi_squared_test <- chisq.test(contingency_table)
+
+# Print Results
+print("Contingency Table:")
+print(contingency_table)
+print("Chi-Squared Test Results:")
+print(chi_squared_test)
+
+```
 
 
