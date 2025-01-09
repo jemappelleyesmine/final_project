@@ -1857,34 +1857,47 @@ write.csv(final_dataset, "final_dataset.csv", row.names = FALSE)
 ```
 
 
+# After the join
 
+## Data cleaning
 
-## Notes
-
-## Choosing an appropriate join
-
-- Use **left_join(), right_join(), inner_join(), or full_join()** from the dplyr package depending on your needs:
-  - **left_join()**: Keeps all rows from the first dataset.
-  - **inner_join()**: Keeps only rows with matching keys in both datasets.
-  - **full_join()**: Combines all rows from both datasets.
-
-Final Merging
-Combine datasets using left_join to avoid losing rows when some datasets might lack values:
+## 1. Remove Missing Values
 
 ```{r}
-##final_dataset <- demo_cleaned %>%
-  ##left_join(iltduu_aggregated, by = "codeEPCI") %>%
-  ##left_join(mob_pro_cleaned, by = "codeEPCI") %>%
-  ##left_join(stops_france_cleaned, by = "codeEPCI") %>%
-  ##left_join(merged_local_mob_revenus, by = "codeEPCI")
+# Identify missing values in the dataset
+missing_summary <- final_dataset %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
 
+print(missing_summary)
+
+final_dataset_2 <- final_dataset %>%
+  mutate(across(where(is.numeric), ~ replace_na(., 0))) %>%
+  mutate(across(where(is.character), ~ replace_na(., "Unknown")))
+
+missing_summary <- final_dataset_2 %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "MissingCount")
+
+print(missing_summary)
 ```
+List of the Intercommunautés with only zeros for categories :
+share_worker_public_transport, share_household_car, share_car_for_work, share_bike_for_work
 
-## Validating the join
+Communauté d'agglomération Cap Excellence (200018653)
+Communauté de communes des Savanes (200027548)
+Communauté d'agglomération La Riviera du Levant (200041507)
+Communauté d'agglomération du Nord Grande Terre (200044691)
+Communauté de communes de Marie-Galante (249710047)
+Communauté d'agglomération du Nord Basse-Terre (249710062)
+Communauté d'agglomération Grand Sud Caraïbe (249710070)
+Communauté de communes de l'Ouest Guyanais (249730037)
+Communauté d'agglomération du Centre Littoral (249730045)
+Communauté de communes de l'Est Guyanais (249730052)
 
-- After joining, check for:
-  - Missing matches using filter(is.na(joined_column)).
-  - Unexpected duplicates or changes in row counts using nrow().
+
+
+
   
 # Writing cleaned data
 
