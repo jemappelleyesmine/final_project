@@ -1895,6 +1895,56 @@ Communauté de communes de l'Ouest Guyanais (249730037)
 Communauté d'agglomération du Centre Littoral (249730045)
 Communauté de communes de l'Est Guyanais (249730052)
 
+## 2. Handle Duplicates
+
+```{r}
+# Check for duplicate rows
+duplicates <- final_dataset_2 %>%
+  duplicated()
+
+cat("Number of duplicate rows:", sum(duplicates), "\n")
+
+view(duplicates)
+```
+
+
+## 3. Normalize Column Names
+
+```{r}
+library(janitor)
+
+# Clean column names
+final_dataset_3 <- final_dataset_2 %>%
+  clean_names()
+
+# Verify the column names
+print(names(final_dataset))
+
+```
+
+## 4. Validate and Adjust Data Types
+
+```{r}
+# Check the data types of each column
+str(final_dataset)
+
+# Convert columns to appropriate data types
+final_dataset_4 <- final_dataset_3 %>%
+  mutate(
+    code_epci = as.character(code_epci),  # Convert ID column to character
+    total_people = as.numeric(total_people),  # Convert numeric columns
+    municipal_population_2021 = as.numeric(municipal_population_2021)
+  )
+str(final_dataset_4)
+```
+
+## 5. Remove total_nb and number_households
+
+```{r}
+final_dataset_5 <- final_dataset_4 %>% select(-total_nb, -number_household_2021)
+```
+
+
 
 
 
