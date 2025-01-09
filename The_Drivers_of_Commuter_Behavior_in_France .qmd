@@ -2261,4 +2261,76 @@ Fit linear models (lm()) to explore potential causal relationships
 Interpret coefficients to understand the impact of each variable.
 Ensure confounding variables (e.g., age distribution, education levels) are included to improve causal inference.
 
+## 1. Exploratory Data Analysis (EDA)
+
+### 1. Scatterplots: Commuting Mode Shares vs. Population Density
+
+```{r}
+# Scatterplot for Public Transport Share vs. Population Density
+ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_worker_public_transport)) +
+  geom_point() +
+  labs(
+    title = "Public Transport Share vs. Population Density",
+    x = "Population Density (2021)",
+    y = "Public Transport Share"
+  ) +
+  theme_minimal()
+
+# Scatterplot for Car Share vs. Population Density
+ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_car_for_work)) +
+  geom_point() +
+  labs(
+    title = "Car Share vs. Population Density",
+    x = "Population Density (2021)",
+    y = "Car Share for Work"
+  ) +
+  theme_minimal()
+
+```
+### 2. Bar Plot: Income Levels vs. Transportation Choices
+
+```{r}
+# Create income categories
+final_dataset_cleaned_2 <- final_dataset_cleaned %>%
+  mutate(income_category = cut(
+    median_living_standard_2021,
+    breaks = quantile(median_living_standard_2021, probs = seq(0, 1, by = 0.25), na.rm = TRUE),
+    labels = c("Low", "Mid-Low", "Mid-High", "High"),
+    include.lowest = TRUE
+  ))
+
+# Melt the data for transportation modes
+melted_data <- final_dataset_cleaned_2 %>%
+  select(income_category, share_worker_public_transport, share_car_for_work, share_bike_for_work) %>%
+  pivot_longer(cols = starts_with("share"), names_to = "Transport_Mode", values_to = "Share")
+
+# Bar plot
+ggplot(melted_data, aes(x = income_category, y = Share, fill = Transport_Mode)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Transportation Choices by Income Category",
+    x = "Income Category",
+    y = "Average Share"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+```
+### 3. Urban/Rural Classification vs. Commuting Behavior
+
+```{r}
+final_dataset_cleaned_3 <- final_dataset_cleaned %>%
+  mutate(urban_rural = ifelse(population_density_2021 > 150, "Urban", "Rural"))
+
+# Boxplot for Urban/Rural vs. Car Share for Work
+ggplot(final_dataset_cleaned_3, aes(x = urban_rural, y = share_car_for_work)) +
+  geom_boxplot() +
+  labs(
+    title = "Car Share for Work by Urban/Rural Classification",
+    x = "Urban/Rural",
+    y = "Car Share for Work"
+  ) +
+  theme_minimal()
+```
+
 
