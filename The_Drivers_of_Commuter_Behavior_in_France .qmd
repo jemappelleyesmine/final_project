@@ -1939,7 +1939,9 @@ str(final_dataset_4)
 ## 5. Remove total_nb and number_households
 
 ```{r}
-final_dataset_5 <- final_dataset_4 %>% select(-total_nb, -number_household_2021)
+final_dataset_5 <- final_dataset_4 %>% select(-total_nb, -number_household_2021, -total_people, -total_cars)
+final_dataset_5 <- final_dataset_5 %>%
+  filter(!(code_epci %in% c(247400666, 246000772))) # removing ducplicates
 ```
 
 ## 6. Detect Outliers
@@ -2006,3 +2008,189 @@ Columns like municipal_population_2021 and population_density_2021 have extremel
 Many shares (e.g., public_transport_share, bicycle_share) are skewed toward the lower end, with very small means or medians compared to their maximum values. This probably reflects actual behaviors (e.g., low public transport usage in rural areas).
 
 Age group shares like age_65_74_share and age_85_94_share have minimum values of zero. This is most likely due to missing data.
+
+## 2. Visualizations
+
+### Intercommunal population
+
+```{r}
+library(ggplot2)
+library(scales) # For formatting axis labels
+
+# Histogram for intercommunal population with formatted x-axis
+ggplot(final_dataset_cleaned, aes(x = intercommunal_population_2021)) +
+  geom_histogram(binwidth = 1000, fill = "skyblue", color = "black") +
+  labs(
+    title = "Distribution of Intercommunal Population (2021)",
+    x = "Intercommunal Population",
+    y = "Count"
+  ) +
+  scale_x_continuous(labels = comma) + # Format x-axis labels as regular numbers
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+
+# Bar chart for top 20 intercommunalities with formatted x-axis
+ggplot(top_intercommunalities, aes(x = reorder(intercommunal_label, intercommunal_population_2021), y = intercommunal_population_2021)) +
+  geom_bar(stat = "identity", fill = "dodgerblue") +
+  coord_flip() +
+  labs(
+    title = "Top 20 Intercommunalities by Population (2021)",
+    x = "Intercommunal Label",
+    y = "Population"
+  ) +
+  scale_y_continuous(labels = comma) + # Format y-axis labels as regular numbers
+  theme_minimal()
+```
+
+### Popoulation density
+
+```{r}
+# Density plot for population density
+ggplot(final_dataset_cleaned, aes(x = population_density_2021)) +
+  geom_density(fill = "lightblue", alpha = 0.6) +
+  labs(
+    title = "Distribution of Population Density (2021)",
+    x = "Population Density",
+    y = "Density"
+  ) +
+  scale_x_continuous(labels = comma) + # Format x-axis for better readability
+  theme_minimal()
+
+```
+### Nb stops
+
+```{r}
+# Histogram for the distribution of the number of stops
+ggplot(final_dataset_cleaned, aes(x = nb_stops)) +
+  geom_histogram(binwidth = 50, color = "black") +
+  labs(
+    title = "Distribution of Number of Stops",
+    x = "Number of Stops",
+    y = "Count of Intercommunalities"
+  ) +
+  theme_minimal()
+```
+```{r}
+# Top 20 intercommunalities by number of stops
+top_nb_stops <- final_dataset_cleaned %>%
+  arrange(desc(nb_stops)) %>%
+  head(20)
+
+ggplot(top_nb_stops, aes(x = reorder(intercommunal_label, nb_stops), y = nb_stops)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    title = "Top 20 Intercommunalities by Number of Stops",
+    x = "Intercommunality",
+    y = "Number of Stops"
+  ) +
+  theme_minimal()
+```
+
+### Transport type
+
+```{r}
+# Reorder the factor levels directly in the mean_shares dataset
+mean_shares <- mean_shares %>%
+  mutate(Transport_Type = factor(Transport_Type, levels = c(
+    "share_bike_for_work", 
+    "share_worker_public_transport", 
+    "share_car_for_work", 
+    "share_household_car"
+  )))
+
+# Create the bar plot
+ggplot(mean_shares, aes(x = Transport_Type, y = Average_Share, fill = Transport_Type)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Average Transport Shares Across Intercommunalities",
+    x = "Transport Type",
+    y = "Average Share (%)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+# Select the relevant columns and pivot to long format
+transport_shares_long <- final_dataset_cleaned %>%
+  select(
+    intercommunal_label, 
+    no_transport_share, 
+    on_foot_share, 
+    bicycle_share, 
+    motorized_two_wheelers_share, 
+    car_truck_van_share, 
+    public_transport_share
+  ) %>%
+  pivot_longer(
+    cols = -intercommunal_label, 
+    names_to = "Transport_Type", 
+    values_to = "Share"
+  )
+
+# Rename transport types for better readability (optional)
+transport_shares_long <- transport_shares_long %>%
+  mutate(Transport_Type = recode(
+    Transport_Type,
+    no_transport_share = "No Transport",
+    on_foot_share = "On Foot",
+    bicycle_share = "Bicycle",
+    motorized_two_wheelers_share = "Two-Wheelers",
+    car_truck_van_share = "Car/Van",
+    public_transport_share = "Public Transport"
+  ))
+# Calculate mean shares for each transport type
+mean_transport_shares <- transport_shares_long %>%
+  group_by(Transport_Type) %>%
+  summarise(Average_Share = mean(Share, na.rm = TRUE))
+
+# Create a bar chart
+ggplot(mean_transport_shares, aes(x = reorder(Transport_Type, -Average_Share), y = Average_Share, fill = Transport_Type)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Average Transport Shares Across All Intercommunalities",
+    x = "Transport Type",
+    y = "Average Share (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "none"
+  )
+```
+
+
+### Age shares
+
+```{r}
+# Convert the dataset to a long format for easier visualization
+age_shares_long <- final_dataset_cleaned %>%
+  select(code_epci, age_15_24_share:age_75_84_share) %>%
+  pivot_longer(
+    cols = starts_with("age_"),
+    names_to = "Age_Group",
+    values_to = "Share"
+  )
+
+# Calculate average shares for each age group
+average_age_shares <- age_shares_long %>%
+  group_by(Age_Group) %>%
+  summarise(Average_Share = mean(Share, na.rm = TRUE))
+
+# Create the bar chart
+ggplot(average_age_shares, aes(x = Age_Group, y = Average_Share, fill = Age_Group)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Average Age Shares Across Intercommunalities",
+    x = "Age Group",
+    y = "Average Share (%)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
