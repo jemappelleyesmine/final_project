@@ -22,28 +22,13 @@ knitr::opts_chunk$set(
 # Table of Contents
 
 1.  [Introduction](#introduction)
-2.  [Datasets](#datasets)
-    -   [Source Descriptions](#source-descriptions)
-3.  [Project Description](#project-description)
-    -   [Research Questions](#research-questions)
-    -   [Challenges](#challenges)
+2.  [Research Question](#research-question)
+3.  [Datasets](#datasets)
 4.  [Data Cleaning](#data-cleaning)
-    -   [Missing Values](#missing-values)
-    -   [Variable Renaming and
-        Normalization](#variable-renaming-and-normalization)
-    -   [Data Aggregation](#data-aggregation)
 5.  [Data Joining](#data-joining)
-    -   [Steps to Consolidate Data](#steps-to-consolidate-data)
-6.  [Exploratory Data Analysis (EDA)](#exploratory-data-analysis)
-    -   [Initial Summary Statistics](#initial-summary-statistics)
-    -   [Visualizations](#visualizations)
-7.  [Statistical Testing](#statistical-testing)
-    -   [Urban/Rural Classification vs. Transportation
-        Modes](#urban-rural-vs-transportation)
-    -   [Socio-Professional Categories vs. Car
-        Ownership](#socio-professional-vs-car-ownership)
-8.  [Causal Analysis](#causal-analysis)
-    -   [Linear Models for Commuter Behavior](#linear-models)
+6.  [Cleaning the Join](#cleaning-the-join)
+7.  [First Exploratory Analysis](#first-exploratory-analysis)
+8.  [Data Analysis](#data-analysis)
 
 [Link to the github
 projec](https://github.com/jemappelleyesmine/final_project)
@@ -52,7 +37,7 @@ projec](https://github.com/jemappelleyesmine/final_project)
 
 WRITE INTO
 
-# Research question
+# Research question {#research-question}
 
 Our research question is: “What are the drivers influencing commuter
 choices in France?” Understanding what influences individuals’ commuting
@@ -1950,7 +1935,7 @@ final_dataset <- demo_stops_and_revenues %>%
 write.csv(final_dataset, "final_dataset.csv", row.names = FALSE)
 ```
 
-# Cleaning the join
+# Cleaning the join {#cleaning-the-join}
 
 ### Removing Missing Values
 
@@ -2103,7 +2088,7 @@ final_dataset_cleaned[share_columns] <- lapply(
 write.csv(final_dataset_cleaned, "final_dataset_cleaned.csv", row.names = FALSE)
 ```
 
-# First exploratory analysis post-join
+# First exploratory analysis {#first-exploratory-analysis}
 
 ### Generate Summary Statistics
 
@@ -2398,7 +2383,7 @@ columns_with_na <- colnames(final_dataset_cleaned2.0)[colSums(is.na(final_datase
 columns_with_na
 ```
 
-# Data analysis
+# Data analysis {#data-analysis}
 
 The dataset contains 1,248 entries and 51 columns. Key variables
 include:
@@ -2660,3 +2645,10 @@ print("Chi-Squared Test Results:")
 print(chi_squared_test)
 
 ```
+
+# Discussion
+
+-   Would also be interesting to perform a causal analysis
+
+-   Eventually try to measure the impact of remote working on commute
+    behavior (compare pre and post covid data)
