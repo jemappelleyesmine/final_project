@@ -21,112 +21,189 @@ knitr::opts_chunk$set(
 
 # Table of Contents
 
-1. [Introduction](#introduction)
-2. [Datasets](#datasets)
-   - [Source Descriptions](#source-descriptions)
-3. [Project Description](#project-description)
-   - [Research Questions](#research-questions)
-   - [Challenges](#challenges)
-4. [Data Cleaning](#data-cleaning)
-   - [Missing Values](#missing-values)
-   - [Variable Renaming and Normalization](#variable-renaming-and-normalization)
-   - [Data Aggregation](#data-aggregation)
-5. [Data Joining](#data-joining)
-   - [Steps to Consolidate Data](#steps-to-consolidate-data)
-6. [Exploratory Data Analysis (EDA)](#exploratory-data-analysis)
-   - [Initial Summary Statistics](#initial-summary-statistics)
-   - [Visualizations](#visualizations)
-7. [Statistical Testing](#statistical-testing)
-   - [Urban/Rural Classification vs. Transportation Modes](#urban-rural-vs-transportation)
-   - [Socio-Professional Categories vs. Car Ownership](#socio-professional-vs-car-ownership)
-8. [Causal Analysis](#causal-analysis)
-   - [Linear Models for Commuter Behavior](#linear-models)
+1.  [Introduction](#introduction)
+2.  [Datasets](#datasets)
+    -   [Source Descriptions](#source-descriptions)
+3.  [Project Description](#project-description)
+    -   [Research Questions](#research-questions)
+    -   [Challenges](#challenges)
+4.  [Data Cleaning](#data-cleaning)
+    -   [Missing Values](#missing-values)
+    -   [Variable Renaming and
+        Normalization](#variable-renaming-and-normalization)
+    -   [Data Aggregation](#data-aggregation)
+5.  [Data Joining](#data-joining)
+    -   [Steps to Consolidate Data](#steps-to-consolidate-data)
+6.  [Exploratory Data Analysis (EDA)](#exploratory-data-analysis)
+    -   [Initial Summary Statistics](#initial-summary-statistics)
+    -   [Visualizations](#visualizations)
+7.  [Statistical Testing](#statistical-testing)
+    -   [Urban/Rural Classification vs. Transportation
+        Modes](#urban-rural-vs-transportation)
+    -   [Socio-Professional Categories vs. Car
+        Ownership](#socio-professional-vs-car-ownership)
+8.  [Causal Analysis](#causal-analysis)
+    -   [Linear Models for Commuter Behavior](#linear-models)
 
-Link to the github project:
-https://github.com/jemappelleyesmine/final_project
+[Link to the github
+projec](https://github.com/jemappelleyesmine/final_project)
 
-# Introduction 
+# Introduction {#introduction}
 
 WRITE INTO
 
-# Datasets
+# Research question
 
-## Source Descriptions
+Our research question is: “What are the drivers influencing commuter
+choices in France?” Understanding what influences individuals’ commuting
+choices in France can provide insights into environmental policy and
+urban planning. Commuter behavior reflects socio-economic, geographic,
+and infrastructural factors, which shape transportation systems, urban
+development, and sustainability efforts. This project seeks to explore
+possible key drivers of commuter choices, with a focus on big datasets
+with different levels of aggregation. We chose to investigate several
+factors influencing commuter behavior based on the availability of
+datasets and the type of information that could be publicly available.
 
-This section describes the datasets used in the analysis, including sources and how the data was selected.
+Here are some factors that we have thought of: - Type of Area (Urban or
+Rural) Commuting options and preferences may differ between urban and
+rural areas due to infrastructure availability, population density, and
+economic activity. - Socio-Professional Category and Income Levels
+Professional status and income levels might play a role in
+transportation choices (affordability, accessibility). - Population
+Density Denser areas may encourage the use of public transit and
+non-motorized options, while less dense regions may rely more heavily on
+private vehicles. - Commuting Distance The length of the commute is an
+important variable, as it could dictate whether an individual opts for
+walking, cycling, driving, or public transit. - Accessibility to
+Transportation Infrastructure The availability of public transit could
+affect convenience and practicality.
 
-### INSEE Demographic Data
+Our project involves several steps: firstly, we must collect, store, and
+organize datasets in a GitHub repository. Since datasets are aggregated
+at varying levels (e.g., “commune” vs. “intercommunal” and with
+"lon/lat"), we will have to harmonize these differences using data
+management methods seen in class. In parallel, we will have to look for
+missing or inconsistent data that may complicate our data analysis.
+After this, we will start initial data exploration by trying to
+summarize variables and visualize relationships using R. At the end, the
+goal will be to generate visualizations to identify patterns and
+evaluate the influence of each factor on commuter behavior. The biggest
+challenge will probably be harmonizing datasets with differing levels of
+aggregation, such as municipal and regional data. For now, our
+expectations are to successfully manage to clean the data, and find some
+drivers of commuter behavior in France and manage to generate clear and
+simple ways to visualize and understand those patterns.
+
+# Datasets {#datasets}
+
+## Source Descriptions {#source-descriptions}
+
+This section describes the datasets used in the analysis, including
+sources and how the data was selected.
+
+### **INSEE Demographic Data**
 
 INSEE_Statistiques_locales_demographie.csv
 
-- **Source**: [INSEE Demographic Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
-- **Key Variables**: Population, Population Density.
-- **Geographical Level**: Intercommunalité.
+-   **Source**: [INSEE Demographic
+    Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
+-   **Key Variables**: Population, Population Density.
+-   **Geographical Level**: Intercommunalité.
 
 To reproduce the data selection:
+
 In "CHOISIR DES INDICATEURS", go to DÉMOGRAPHIE, then select:
-- Population municipale (historique depuis 1876) 2021
-- Densité de population (historique depuis 1876) 2021
+
+-   Population municipale (historique depuis 1876) 2021
+
+-   Densité de population (historique depuis 1876) 2021
+
 In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Intercommunalité-Métropole
+
+-   Intercommunalité-Métropole
 
 ### INSEE Income Data
 
 INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv
 
-- **Source**: [INSEE Income Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
-- **Key Variables**: Median Income, Number of Households.
-- **Geographical Level**: Commune.
+-   **Source**: [INSEE Income
+    Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
+-   **Key Variables**: Median Income, Number of Households.
+-   **Geographical Level**: Commune.
 
 To reproduce the data selection:
-- In "CHOISIR DES INDICATEURS", go to REVENUS - POUVOIR D'ACHAT - CONSOMMATION, then select:
-- Nb de ménages fiscaux 2021
-- Médiane du niveau de vie 2021
+
+In "CHOISIR DES INDICATEURS", go to REVENUS - POUVOIR D'ACHAT -
+CONSOMMATION, then select:
+
+-   Nb de ménages fiscaux 2021
+
+-   Médiane du niveau de vie 2021
+
 In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Commune
+
+-   Commune
 
 ### INSEE Commuter Data
 
 INSEE_Statistiques_locales_territoires_ville_quartiers.csv
 
-- **Source**: [INSEE Commuter Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
-- **Key Variables**: Number of housholds owning a car, Use of types of transportation
-- **Geographical Level**: Commune.
+-   **Source**: [INSEE Commuter
+    Data](https://statistiques-locales.insee.fr/#view=map1&c=indicator)
+-   **Key Variables**: Number of housholds owning a car, Use of types of
+    transportation
+-   **Geographical Level**: Commune.
 
 To reproduce the data selection:
-In "CHOISIR DES INDICATEURS", go to TERRITOIRES, VILLES ET QUARTIERS, then select:
-- Part des actifs occupés de 15 ans ou plus les transports en commun 2021
-- Part des ménages ayant au moins 1 voiture 2021
-- Part des actifs occ 15 ans ou plus voiture pour travailler 2021
-- Part des actifs occ 15 ans ou plus vélo pour travailler 2021
+
+In "CHOISIR DES INDICATEURS", go to TERRITOIRES, VILLES ET QUARTIERS,
+then select:
+
+-   Part des actifs occupés de 15 ans ou plus les transports en commun
+    2021
+
+-   Part des ménages ayant au moins 1 voiture 2021
+
+-   Part des actifs occ 15 ans ou plus voiture pour travailler 2021
+
+-   Part des actifs occ 15 ans ou plus vélo pour travailler 2021
+
 In "CHANGER LE DÉCOUPAGE GÉOGRAPHIQUE", select:
-- Commune
+
+-   Commune
 
 ### Experimental Dataset: Public Transport Stops
 
 stops_france.csv.gz
 
-- **Source**: [transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/arrets-de-transport-en-france)
-- **Key Variables**: Stop Name, Location (Lat/Lon).
+-   **Source**:
+    [transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/arrets-de-transport-en-france)
+-   **Key Variables**: Stop Name, Location (Lat/Lon).
 
 ### INSEE MOB PRO
 
 RP2021_mobpro.zip
 
-- **Source**: [INSEE MOB PRO](https://www.insee.fr/fr/statistiques/8205896?sommaire=8205966)
+-   **Source**: [INSEE MOB
+    PRO](https://www.insee.fr/fr/statistiques/8205896?sommaire=8205966)
 
 ### INSEE MOB TRANS
 
 BTT_TD_NAV2B_2017.zip
 
-- **Source**: [INSEE MOB TRANS](https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter)
+-   **Source**: [INSEE MOB
+    TRANS](https://www.insee.fr/fr/statistiques/4515510?sommaire=4516095&q=mobilite+et+transports#consulter)
 
 To reproduce the data selection:
-"NAV2B – Population active de 15 ans ou plus ayant un emploi par sexe, lieu de travail (géographie urbaine) et moyen de transport"
 
-### Loading and Preparing Datasets
+-   "NAV2B – Population active de 15 ans ou plus ayant un emploi par
+    sexe, lieu de travail (géographie urbaine) et moyen de transport"
 
-- Loading stops_france
+### Loading Datasets
+
+-   Loading stops_france
+
 ```{r}
 library(vroom)
 library(here)
@@ -151,7 +228,9 @@ if (!file.exists(here(local_dir, local_name))) {
   stops_france <- vroom(here(local_dir, local_name))
 }
 ```
-- Loading mob_pro
+
+-   Loading mob_pro
+
 ```{r}
 library(zip)
 # Define variables
@@ -176,7 +255,9 @@ mob_pro <- vroom(here(local_dir, csv1_name))
 # Load the second CSV file
 var_mob_pro <- vroom(here(local_dir, csv2_name))
 ```
-- Loading iltduu_sexe_trans
+
+-   Loading iltduu_sexe_trans
+
 ```{r}
 # Define variables
 source <- "https://www.insee.fr/fr/statistiques/fichier/4515510/BTT_TD_NAV2B_2017.zip"
@@ -197,7 +278,9 @@ unzip(here(local_dir, local_name), exdir = here(local_dir))
 # Load the specified CSV file
 iltduu_sexe_trans <- vroom(here(local_dir, csv_name))
 ```
-- Loading the local files
+
+-   Loading the local files
+
 ```{r}
 demo <- vroom(here("data", "INSEE_Statistiques_locales_demographie.csv"))
 revenus <- vroom(here("data","INSEE_Statistiques_locales_menages_fiscaux_niveau_de_vie.csv"))
@@ -206,13 +289,43 @@ local_mob <- vroom(here("data","INSEE_Statistiques_locales_territoires_ville_qua
 
 ### Description of the sources
 
-Our first source is the “Statistiques Locales” platform by INSEE. This platform provides geolocalized data to analyze territorial / spatial phenomena in France. It is an online tool that can allow us to have access to statistical information (which are categorized by geographic areas) through tables . Most importantly for us, it offers datasets on urban and travel indicators. There are three datasets from this platform which we are interested in: The data tab called “Territoires, villes et quartiers” (especially its sub-tab “Mobilités - Déplacements”). The data tab called “Démographie” (notably its data on population density by geography). The data tab called “Développement Durable - Environnement”, which provides a data set on the median standard of living in France by geographical area (“commune”).
+Our first source is the “Statistiques Locales” platform by INSEE. This
+platform provides geolocalized data to analyze territorial / spatial
+phenomena in France. It is an online tool that can allow us to have
+access to statistical information (which are categorized by geographic
+areas) through tables . Most importantly for us, it offers datasets on
+urban and travel indicators. There are three datasets from this platform
+which we are interested in: The data tab called “Territoires, villes et
+quartiers” (especially its sub-tab “Mobilités - Déplacements”). The data
+tab called “Démographie” (notably its data on population density by
+geography). The data tab called “Développement Durable - Environnement”,
+which provides a data set on the median standard of living in France by
+geographical area (“commune”).
 
-Our second source is an experimental dataset published on the governmental website transport.data.gouv.fr by the “Ministère du partenariat avec les territoires et de la décentralisation”. This platform provides a dataset of public transport stop points across France. This dataset aggregates GTFS (General Transit Feed Specification) data collected from the National Access Point for transport data. It includes the name, coordinates (longitude and latitude), region, mobility authority (if applicable), and GTFS identifiers of each stop. The data set has limitations such as duplication of stops.
+Our second source is an experimental dataset published on the
+governmental website transport.data.gouv.fr by the “Ministère du
+partenariat avec les territoires et de la décentralisation”. This
+platform provides a dataset of public transport stop points across
+France. This dataset aggregates GTFS (General Transit Feed
+Specification) data collected from the National Access Point for
+transport data. It includes the name, coordinates (longitude and
+latitude), region, mobility authority (if applicable), and GTFS
+identifiers of each stop. The data set has limitations such as
+duplication of stops.
 
-Our third source is INSEE's December 2020 dataset on commuting patterns from the 2017 population census. This dataset, titled NAV2B, focuses on employed individuals aged 15 and older, sharing their means of transportation for commuting to work, disaggregated by gender and workplace geography (urban vs. rural). It provides granular data at the municipal level for all French communes except Mayotte.
+Our third source is INSEE's December 2020 dataset on commuting patterns
+from the 2017 population census. This dataset, titled NAV2B, focuses on
+employed individuals aged 15 and older, sharing their means of
+transportation for commuting to work, disaggregated by gender and
+workplace geography (urban vs. rural). It provides granular data at the
+municipal level for all French communes except Mayotte.
 
-Our final source is an INSEE 2024 dataset on professional mobility, from the 2021 population It contains data linking individuals' places of residence and work at the municipal level, including cross-border commuting. It provides information on individuals aged 15 and older who are employed, with variables describing their household, primary residence, and commuting patterns.
+Our final source is an INSEE 2024 dataset on professional mobility, from
+the 2021 population It contains data linking individuals' places of
+residence and work at the municipal level, including cross-border
+commuting. It provides information on individuals aged 15 and older who
+are employed, with variables describing their household, primary
+residence, and commuting patterns.
 
 ```{r}
 # Load required libraries
@@ -256,97 +369,100 @@ cat("\n")
   
 ```
 
-# Research question
+### Description of the main variables
 
-Our research question is: “What are the drivers influencing commuter choices in France?” Understanding what influences individuals’ commuting choices in France can provide insights into environmental policy and urban planning. Commuter behavior reflects socio-economic, geographic, and infrastructural factors, which shape transportation systems, urban development, and sustainability efforts. This project seeks to explore possible key drivers of commuter choices, with a focus on big datasets with different levels of aggregation. We chose to investigate several factors influencing commuter behavior based on the availability of datasets and the type of information that could be publicly available.
+**Statistiques Locales Platform by INSEE**
 
-Here are some factors that we have thought of:
-- Type of Area (Urban or Rural)
-Commuting options and preferences may differ between urban and rural areas due to infrastructure availability, population density, and economic activity.
-- Socio-Professional Category and Income Levels
-Professional status and income levels might play a role in transportation choices (affordability, accessibility).
-- Population Density
-Denser areas may encourage the use of public transit and non-motorized options, while less dense regions may rely more heavily on private vehicles.
-- Commuting Distance
-The length of the commute is an important variable, as it could dictate whether an individual opts for walking, cycling, driving, or public transit.
-- Accessibility to Transportation Infrastructure
-The availability of public transit could affect convenience and practicality.
+-   "Territoires, villes et quartiers" data tab
 
-Our project involves several steps: firstly, we must collect, store, and organize datasets in a GitHub repository. Since datasets are aggregated at varying levels (e.g., “commune” vs. “intercommunal” and with "lon/lat"), we will have to harmonize these differences using data management methods seen in class. In parallel, we will have to look for missing or inconsistent data that may complicate our data analysis. After this, we will start initial data exploration by trying to summarize variables and visualize relationships using R. At the end, the goal will be to generate visualizations to identify patterns and evaluate the influence of each factor on commuter behavior. The biggest challenge will probably be harmonizing datasets with differing levels of aggregation, such as municipal and regional data. For now, our expectations are to successfully manage to clean the data, and find some drivers of commuter behavior in France and manage to generate clear and simple ways to visualize and understand those patterns.
+*“Part des actifs occupés de 15 ans ou plus qui utilisent principalement
+les transports en commun pour aller travailler”*:
 
-## Description of the main variables
+This variable represents the proportion of employed individuals aged 15
+and older who primarily rely on public transportation for commuting to
+work in 2021. It is categorized by commune.
 
-### "Statistiques Locales" Platform by INSEE
+-   "Démographie" data tab
 
-#### "Territoires, villes et quartiers" data tab
+*"Densité de population":*
 
-**“Part des actifs occupés de 15 ans ou plus qui utilisent
-principalement les transports en commun pour aller travailler”**: This
-variable represents the proportion of employed individuals aged 15 and
-older who primarily rely on public transportation for commuting to work
-in 2021. It is categorized by commune.
+This variable represents the population density, calculated as the
+number of inhabitants (municipal count) per square kilometer, for each
+intercommunal area, since 1876.
 
-#### "Démographie" data tab
+-   "Développement durable - Environnement" data tab
 
-**"Densité de population"**: This variable represents the population
-density, calculated as the number of inhabitants (municipal count) per
-square kilometer, for each intercommunal area, since 1876.
+*"Médiane du niveau de vie"*:
 
-#### "Développement durable - Environnement" data tab
+This variable represents, across communes, the median disposable income
+per household, calculated by dividing the household's total disposable
+income by the number of consumption units. It excludes small zones with
+fewer than 50 households or 100 individuals for statistical
+confidentiality.
 
-**"Médiane du niveau de vie"**: This variable represents, across
-communes, the median disposable income per household, calculated by
-dividing the household's total disposable income by the number of
-consumption units. It excludes small zones with fewer than 50 households
-or 100 individuals for statistical confidentiality.
+**Experimental dataset from transport.data.gouv.fr**
 
-### Experimental dataset from transport.data.gouv.fr
+*"stop_name":*
 
-**"stop_name"**: This variable represents the name of a public
-transportation stop, as listed in the experimental dataset from
-transport.data.gouv.fr. Each stop is geolocated using its latitude and
-longitude. The dataset aggregates stops from multiple GTFS files, and
-the stop names are not deduplicated, meaning multiple entries can
-correspond to the same physical stop across different datasets.
+This variable represents the name of a public transportation stop, as
+listed in the experimental dataset from transport.data.gouv.fr. Each
+stop is geolocated using its latitude and longitude. The dataset
+aggregates stops from multiple GTFS files, and the stop names are not
+deduplicated, meaning multiple entries can correspond to the same
+physical stop across different datasets.
 
-### INSEE's December 2020 NAV2B data set
+**INSEE's December 2020 NAV2B data set**
 
-**“TRANS_19”** : This variable categorizes the primary mode of
-transportation used by employed individuals aged 15 years and above for
-commuting, by commune. The modes include walking, cycling, public
-transport, private vehicles (car, van, truck), motorized two-wheelers,
-and no transportation (e.g., work from home).
+*“TRANS_19”* :
 
-**“ILTDUU”**: This variable categorizes the commuting pattern of
-individuals based on the urban or rural classification of their
-residence and workplace. The categories include living and working in
-the same rural or urban commune, commuting from a rural area to another
-rural or urban commune, or commuting from an urban area to other urban
-or rural locations.
+This variable categorizes the primary mode of transportation used by
+employed individuals aged 15 years and above for commuting, by commune.
+The modes include walking, cycling, public transport, private vehicles
+(car, van, truck), motorized two-wheelers, and no transportation (e.g.,
+work from home).
 
-### INSEE's 2024 dataset on professional mobility
+*“ILTDUU”*:
 
-**"DEROU"**: This variable represents the number of motorized
-two-wheelers (such as motorcycles or scooters) owned by the household.
+This variable categorizes the commuting pattern of individuals based on
+the urban or rural classification of their residence and workplace. The
+categories include living and working in the same rural or urban
+commune, commuting from a rural area to another rural or urban commune,
+or commuting from an urban area to other urban or rural locations.
 
-**"DIPL"**: This variable indicates the highest level of educational
-qualification achieved by an individual.
+**INSEE's 2024 dataset on professional mobility**
 
-**"INPOM"**: This variable provides the count of employed individuals
-within a household.
+*"DEROU":*
 
-**"VOIT"**: This variable represents the number of cars owned by the
+This variable represents the number of motorized two-wheelers (such as
+motorcycles or scooters) owned by the household.
+
+*"DIPL":*
+
+This variable indicates the highest level of educational qualification
+achieved by an individual.
+
+*"INPOM":*
+
+This variable provides the count of employed individuals within a
 household.
 
-**"COMMUNE"**: Refers to the municipality or town of residence or work.
+*"VOIT":*
 
-**"ILT"**: Indicates the location of an individual's workplace relative
-to their residence, categorized into five groups: within the same
-municipality, a different municipality in the same department, another
-department in the same region, another region in metropolitan France, or
-outside metropolitan France (including overseas or abroad).
+This variable represents the number of cars owned by the household.
 
-## Graphical representation of one of the main variables
+*"COMMUNE":*
+
+Refers to the municipality or town of residence or work.
+
+*"ILT":*
+
+Indicates the location of an individual's workplace relative to their
+residence, categorized into five groups: within the same municipality, a
+different municipality in the same department, another department in the
+same region, another region in metropolitan France, or outside
+metropolitan France (including overseas or abroad).
+
+### Graphical representation of one of the main variables
 
 ```{r}
 # Load libraries
@@ -395,9 +511,7 @@ ggplot(trans_19_summary, aes(x = Mode, y = Count, fill = Mode)) +
 
 ```
 
-# Data Cleaning
-
-## Identify and handle missing values
+# Data Cleaning {#data-cleaning}
 
 ### Checking for missing values
 
@@ -434,7 +548,7 @@ for (name in names(missing_values_summary)) {
 }
 ```
 
-### Handling missing values of demo (demo_cleaned)
+**Handling missing values of demo (demo_cleaned)**
 
 ```{r}
 library(dplyr)
@@ -457,7 +571,7 @@ summary_missing_cleaned <- demo_cleaned %>%
 print(summary_missing_cleaned)
 ```
 
-### Handling missing values of local_mob (local_mob_cleaned)
+**Handling missing values of local_mob (local_mob_cleaned)**
 
 ```{r}
 # Handling missing values in local_mob
@@ -483,7 +597,7 @@ summary_missing_cleaned <- local_mob_cleaned %>%
 print(summary_missing_cleaned)
 ```
 
-### Handling missing values of revenus (revenus_cleaned)
+**Handling missing values of revenus (revenus_cleaned)**
 
 ```{r}
 # Handling missing values in the revenus dataset
@@ -503,7 +617,7 @@ summary_missing_cleaned <- revenus_cleaned %>%
 print(summary_missing_cleaned)
 ```
 
-### Handling missing values of stops_france (stops_france_cleaned)
+**Handling missing values of stops_france (stops_france_cleaned)**
 
 ```{r}
 # Handling missing values and removing unnecessary columns in stops_france
@@ -523,7 +637,7 @@ summary_missing_cleaned <- stops_france_cleaned %>%
 print(summary_missing_cleaned)
 ```
 
-### Handling missing values of mob_pro (mob_pro_cleaned)
+**Handling missing values of mob_pro (mob_pro_cleaned)**
 
 ```{r}
 # Investigate rows with missing values
@@ -568,7 +682,7 @@ summary_missing_cleaned <- mob_pro_cleaned %>%
 print(summary_missing_cleaned)
 ```
 
-### Handling missing values of var_mob_pro (var_mob_pro_cleaned)
+**Handling missing values of var_mob_pro (var_mob_pro_cleaned)**
 
 ```{r}
 # Investigate rows with missing values
@@ -597,7 +711,7 @@ print(summary_missing_cleaned)
 
 ```
 
-## Creating consistent variable names
+### Creating consistent variable names
 
 ```{r}
 # Load janitor package
@@ -717,7 +831,7 @@ list(
 )
 ```
 
-## Removing the descriptive meta data
+### Removing the descriptive meta data
 
 ```{r}
 # Remove first two rows for demo_cleaned, local_mob_cleaned, and revenus_cleaned
@@ -731,11 +845,13 @@ head(local_mob_cleaned)
 head(revenus_cleaned)
 ```
 
-## Removing the columns we won't need 
+### Removing irrelevant columns
 
-### in mob_pro_cleaned
+**In mob_pro_cleaned**
 
-There are way too many variables in mob_pro_cleaned (32), surely we should not need all of them to conduct our analysis:
+There are way too many variables in mob_pro_cleaned (32), surely we
+should not need all of them to conduct our analysis:
+
 ```{r}
 library(dplyr)
 
@@ -746,7 +862,7 @@ mob_pro_cleaned <- mob_pro_cleaned %>%
 colnames(mob_pro_cleaned)
 ```
 
-### in stops_france
+**In stops_france**
 
 ```{r}
 # If we just want to specify the ones we want to keep:
@@ -756,8 +872,7 @@ stops_france_cleaned <- stops_france_cleaned %>%
 colnames(stops_france_cleaned)
 ```
 
-
-## Validating each data type
+### Validating each data type
 
 ```{r}
 # Validate and adjust data types for demo_cleaned
@@ -871,9 +986,9 @@ list(
 )
 ```
 
-## Creating consistent observation names / give labels to factors for easier identification
+### Give labels to factors for easier identification
 
-### Iltduu Sexe Trans Dataset
+**Iltduu Sexe Trans Dataset**
 
 ```{r}
 iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
@@ -910,7 +1025,7 @@ iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
   )
 ```
 
-### Mob Pro Dataset
+**Mob Pro Dataset**
 
 ```{r}
 mob_pro_cleaned <- mob_pro_cleaned %>%
@@ -1036,7 +1151,7 @@ mob_pro_cleaned <- mob_pro_cleaned %>%
   )
 ```
 
-## Removing duplicates
+### Removing duplicates
 
 ```{r}
 library(dplyr)
@@ -1069,11 +1184,9 @@ row_summary <- data.frame(
 print(row_summary)
 ```
 
+# Data Joining {#data-joining}
 
-# Data Joining
-
-
-## Joining local_mob_cleaned and revenus_cleaned
+### Joining local_mob_cleaned and revenus_cleaned
 
 ```{r}
 merged_local_mob_revenus <- local_mob_cleaned %>%
@@ -1088,7 +1201,7 @@ datasets_cleaned$merged_local_mob_revenus <- merged_local_mob_revenus  # Add the
 
 ```
 
-## From Commune to Intercommunalité.
+### From Commune to Intercommunalité
 
 ```{r}
 library(vroom)
@@ -1116,18 +1229,23 @@ if (!file.exists(here(local_dir, local_name))) {
 ```
 
 Keep only the variables we are interested in:
-- codeCommune
-- nomCommune
-- codeEPCI
-- nomEPCI
-- latitude
-- longitude
-- surface
+
+-   codeCommune
+
+-   nomCommune
+
+-   codeEPCI
+
+-   nomEPCI
+
+-   latitude
+
+-   longitude
 
 ```{r}
 ## Filter the dataset to keep only the required variables
 COM_to_EPCI_filtered <- COM_to_EPCI %>%
-  select(codeCommune, nomCommune, codeEPCI, nomEPCI, latitude, longitude, surface)
+  select(codeCommune, nomCommune, codeEPCI, nomEPCI, latitude, longitude)
 
 # Update datasets_cleaned
 datasets_cleaned$COM_to_EPCI <- COM_to_EPCI_filtered
@@ -1135,68 +1253,103 @@ datasets_cleaned$COM_to_EPCI <- COM_to_EPCI_filtered
 
 ```
 
-## Filtering and selecting relevant columns 
+### Filtering and selecting relevant columns
 
 **OBJECTIVE**
 
-We are looking to have one big dataset that includes the following columns:
-From:
-demo...
-- intercommunal code
-- intercommunal label
-- population
-- density
-iltduu...
-- urban workplace indicator 
-- sexe
-- main transportation work
-- number of "occurences"
-stops_france...
-- nb of stops per intercommune
-mob_pro
-- age
-- socio prof cat
-- nb of two-wheelers
-- highest qualification
-- number people per household
-- number cars per household
-- type of household
-- working time
-- accomodation type
-merged_local_mob_revenus
-- share_worker_public_transport
-- share_household_car
-- share_car_for_work
-- share_bike_for_work
-- number_households
-- median_living_standard
+We are looking to have one big dataset that includes the following
+columns:
 
+From:
+
+demo...
+
+-   intercommunal code
+
+-   intercommunal label
+
+-   population
+
+-   density
+
+iltduu...
+
+-   urban workplace indicator
+
+-   sexe
+
+-   main transportation work
+
+-   number of "occurences"
+
+stops_france...
+
+-   nb of stops per intercommune
+
+mob_pro...
+
+-   age
+
+-   socio prof cat
+
+-   nb of two-wheelers
+
+-   highest qualification
+
+-   number people per household
+
+-   number cars per household
+
+-   type of household
+
+-   working time
+
+-   accomodation type
+
+merged_local_mob_revenus...
+
+-   share_worker_public_transport
+
+-   share_household_car
+
+-   share_car_for_work
+
+-   share_bike_for_work
+
+-   number_households
+
+-   median_living_standard
 
 **PLAN**
 
-Filter rows to keep only relevant observations based on your research question.
-Select columns that are directly relevant for your analysis, discarding unnecessary ones.
+Filter rows to keep only relevant observations based on your research
+question. Select columns that are directly relevant for your analysis,
+discarding unnecessary ones.
 
-Identify Relevant Columns for Each Dataset:
-Decide which variables are necessary based on your research question (e.g., geographic identifiers, socio-professional categories, commuting modes).
+Identify Relevant Columns for Each Dataset: Decide which variables are
+necessary based on your research question (e.g., geographic identifiers,
+socio-professional categories, commuting modes).
 
-Filter Rows:
-Exclude rows that don’t contribute to your analysis (e.g., NA values or out-of-scope observations).
-Use filter() to narrow down data.
-Select Columns:
-Use select() to keep only the necessary columns.
+Filter Rows: Exclude rows that don’t contribute to your analysis (e.g.,
+NA values or out-of-scope observations). Use filter() to narrow down
+data. Select Columns: Use select() to keep only the necessary columns.
 
 Then aggregate to have it at Intercommunalité level.
 
-### ILTDUU
+**ILTDUU**
 
-1.Filter out geotype and create a new dataset containing only the following variables:
-- urban_workplace_indicator
-- sexe
-- main_transportation_work
-- nb
+1.  Filter out geotype and create a new dataset containing only the
+    following variables:
 
-2. Aggregate at Intercommunalité level
+-   urban_workplace_indicator
+
+-   sexe
+
+-   main_transportation_work
+
+-   nb
+
+2.  Aggregate at Intercommunalité level
 
 ```{r}
 # Keep only the first occurrence of each codeCommune
@@ -1212,7 +1365,6 @@ iltduu_transformed <- iltduu_sexe_trans_cleaned %>%
   )
 
 ```
-
 
 ```{r}
 # Aggregate data to have 60 entries per codeEPCI
@@ -1247,7 +1399,7 @@ sum_iltduu_aggregated
 sum_iltduu_transformed
 ```
 
-### merged_local_mob_revenus
+**merged_local_mob_revenus**
 
 Aggregate data
 
@@ -1286,20 +1438,19 @@ merged_local_mob_revenus_aggregated <- merged_local_mob_revenus_transformed %>%
   )
 ```
 
+**stops_france**
 
-
-### stops_france
-
-1. Make sure stops_france doesn't have any "doublons" left.
+1.  Make sure stops_france doesn't have any duplicates left.
 
 ```{r}
 stops_france_noduplicates <- stops_france_cleaned %>%
   distinct(dataset_custom_title, stop_name, .keep_all = TRUE)
+
+# distinct(dataset_custom_title, stop_name, .keep_all = TRUE) ensures that only unique combinations of dataset_custom_title and stop_name remain in the dataset.
 ```
 
-Note: distinct(dataset_custom_title, stop_name, .keep_all = TRUE) ensures that only unique combinations of dataset_custom_title and stop_name remain in the dataset.
-
-2. Use each stops lon/lat to associate with an "intercommune" and indicate nb of stops per intercommune.
+2.  Use each stops lon/lat to associate with an "intercommune" and
+    indicate nb of stops per intercommune.
 
 Use spatial tools to assign stops to codeEPCI (if lon/lat is available).
 
@@ -1334,19 +1485,19 @@ stops_summary <- stops_summary %>%
 
 ```
 
+**mob_pro**
 
-### mob_pro
+1.  Filter such that we only keep the following variables:
 
-1. Filter such that we only keep the following variables:
-- age
-- socio prof cat
-- nb of two-wheelers
-- highest qualification
-- number people per household
-- number cars per household
-- type of household
-- working time
-- accomodation type
+-   age
+-   socio prof cat
+-   nb of two-wheelers
+-   highest qualification
+-   number people per household
+-   number cars per household
+-   type of household
+-   working time
+-   accomodation type
 
 ```{r}
 # Select only the required columns
@@ -1399,69 +1550,16 @@ mob_pro_aggregated <- mob_pro_transformed %>%
 
 ```
 
+### Datasets ready for join by codeEPCI
 
-## DATASETS ready for JOIN by codeEPCI
-
-- demo_cleaned
-- iltduu_aggregated
-- merged_local_mob_revenus_aggregated
-- stops_summary
-- mob_pro_aggregated
-
-
-## 4. Steps to Consolidate Data:
-Start with demo_cleaned: Use it as the base dataset since it contains the intercommunalité identifiers.
-Join other datasets:
-Use left_join() to add data from iltduu_aggregated, merged_local_mob_revenus_aggregated, stops_summary, and mob_pro_aggregated.
-Ensure that all joins are based on codeEPCI.
-
-1. Identify the Purpose of the Consolidated Dataset
-Key Question: What is the final goal of the consolidated dataset? For example:
-Is it for analysis, visualization, modeling, or reporting?
-Are you focused on comparing intercommunalités (codeEPCI) across different dimensions?
-This clarity will help decide which variables to keep, aggregate, or transform.
-
-2. Ensure Common Identifiers
-The codeEPCI identifier must exist and be consistent across all datasets to allow seamless joins. Check for:
-Duplicates: Ensure each codeEPCI is unique in datasets like demo_cleaned (the base dataset).
-Consistency: Verify that the codeEPCI format (e.g., leading zeros) is consistent across all datasets.
-
-3. Handle Granular Variables Thoughtfully
-Some datasets (e.g., mob_pro_transformed) contain highly granular variables (e.g., age slices, socio-professional categories). Consider:
-Aggregating these variables to the codeEPCI level where necessary, but only after determining the aggregation method (e.g., mean, weighted average, sum).
-Preserving granularity for specific analyses (e.g., age distribution) by keeping detailed data in a separate dataset linked to codeEPCI.
-
-4. Choose Appropriate Aggregation Methods
-For numeric variables that need to be aggregated to the intercommunalité level, ensure the method matches the variable type:
-Counts (e.g., population, number of stops): Use the sum.
-Shares/Percentages (e.g., share_worker_public_transport): Use a weighted average with a relevant weighting variable (e.g., number of households).
-Categorical variables (e.g., most common socio-professional category): Use the mode or dominant category.
-
-5. Retain Important Contextual Variables
-Avoid dropping useful variables like urban_workplace_indicator and working_time, even if they are not aggregated, as they provide context and could be used in future analyses.
-Use consistent naming conventions for variables to avoid confusion when merged.
-
-6. Address Missing Values
-Ensure missing values are handled before merging:
-For numeric variables: Decide whether to impute missing values (e.g., using means/medians) or keep them as NA.
-For categorical variables: Replace with "Unknown" or a placeholder where appropriate.
-After merging, check for increased missingness in the final dataset.
-
-7. Avoid Duplication and Redundancy
-Some datasets might include overlapping variables (e.g., population size in both demo_cleaned and merged_local_mob_revenus_aggregated).
-Choose one source for each variable to avoid redundancy.
-
-8. Prioritize Variable Inclusion
-Decide which variables are essential for your analysis. Consider splitting the final dataset into:
-A core dataset with critical variables (e.g., population density, transportation metrics).
-A secondary dataset with detailed or auxiliary variables for specific deep-dives (e.g., age slices, socio-professional categories).
-
-9. Test the Consolidation
-Validate the consolidated dataset:
-Ensure no data is lost by comparing aggregate metrics (e.g., sums, means) in the original datasets to the consolidated version.
-Check for consistency in values across the merged datasets.
+-   demo_cleaned
+-   iltduu_aggregated
+-   merged_local_mob_revenus_aggregated
+-   stops_summary
+-   mob_pro_aggregated
 
 ### Join demo and stops
+
 There are not the same number of rows, let's look into that.
 
 ```{r}
@@ -1495,9 +1593,9 @@ stops_summary_updated <- stops_summary_updated %>%
 
 ```
 
-Now there are 1266 entries in stops_summary_updated.
-However only 1255 in demo_cleaned.
-There are 11 codeEPCIs that are missing in demo_cleaned.
+Now there are 1266 entries in stops_summary_updated. However only 1255
+in demo_cleaned. There are 11 codeEPCIs that are missing in
+demo_cleaned.
 
 ```{r}
 # Extract the EPCI codes from both datasets
@@ -1525,7 +1623,9 @@ missing_epci_details_unique <- missing_epci_details %>%
 print(missing_epci_details_unique)
 
 ```
-So in demo_cleaned, we are missing quite many values regarding Paris. This will make our analysis less accurate.
+
+So in demo_cleaned, we are missing quite many values regarding Paris.
+This will make our analysis less accurate.
 
 ADD 16 NA to those EPCI.
 
@@ -1556,7 +1656,8 @@ print(missing_intercommunal_code)
 
 ```
 
-Métropole du Grand Paris arrives 18th in number of stops. Seems odd and unlikely.
+Métropole du Grand Paris arrives 18th in number of stops. Seems odd and
+unlikely.
 
 We should still handle the "NA" in the resulting dataset.
 
@@ -1592,19 +1693,37 @@ if (nan_proportion > 0.3) {
 summary(mob_pro_aggregated$nb_household_two_wheelers)
 ```
 
-Latest Datasets and Their Contents:
+### Latest Datasets and Their Contents:
 
-demo_stops
-This is the primary dataset after joining demo_cleaned and stops_summary_updated. It contains demographic data at the intercommunalité level (from demo_cleaned) along with the number of public transportation stops (from stops_summary_updated). Any missing values in the nb_stops column have been filled, and the intercommunal_code and intercommunal_label are updated based on the codeEPCI and nomEPCI from stops_summary_updated.
+1.  **demo_stops**
 
-iltduu_aggregated
-Contains aggregated transportation data (e.g., types of transportation, urban workplace indicators, and socio-economic data) from iltduu_sexe_trans_cleaned at the intercommunalité level.
+This is the primary dataset after joining demo_cleaned and
+stops_summary_updated. It contains demographic data at the
+intercommunalité level (from demo_cleaned) along with the number of
+public transportation stops (from stops_summary_updated). Any missing
+values in the nb_stops column have been filled, and the
+intercommunal_code and intercommunal_label are updated based on the
+codeEPCI and nomEPCI from stops_summary_updated.
 
-merged_local_mob_revenus_aggregated
-Contains aggregated mobility and revenue data, including variables like the share of people using different modes of transportation and other economic indicators, aggregated at the intercommunalité level.
+2.  **iltduu_aggregated**
 
-mob_pro_aggregated
-Contains aggregated socio-economic data at the intercommunalité level, including variables like age groups, socio-professional categories, household data (e.g., number of people per household, number of cars), and employment conditions. Missing values in the nb_household_two_wheelers column have been handled.
+Contains aggregated transportation data (e.g., types of transportation,
+urban workplace indicators, and socio-economic data) from
+iltduu_sexe_trans_cleaned at the intercommunalité level.
+
+3.  **merged_local_mob_revenus_aggregated**
+
+Contains aggregated mobility and revenue data, including variables like
+the share of people using different modes of transportation and other
+economic indicators, aggregated at the intercommunalité level.
+
+4.  **mob_pro_aggregated**
+
+Contains aggregated socio-economic data at the intercommunalité level,
+including variables like age groups, socio-professional categories,
+household data (e.g., number of people per household, number of cars),
+and employment conditions. Missing values in the
+nb_household_two_wheelers column have been handled.
 
 ### Investigate the unique observations of codeEPCI values for each dataset
 
@@ -1629,7 +1748,8 @@ cat("Unique codeEPCI in iltduu_aggregated: ", length(iltduu_unique_codes), "\n")
 cat("Unique codeEPCI in merged_local_mob_revenus_aggregated: ", length(merged_local_mob_revenus_unique_codes), "\n")
 ```
 
-### Only keeping the observations with codeEPCI that are common to all datasets
+**Only keeping the observations with codeEPCI that are common to all
+datasets**
 
 ```{r}
 # Step 1: Identify the common codeEPCI values across all datasets
@@ -1672,16 +1792,27 @@ cat("Number of rows after demo_stops and merged_local_mob_revenus_aggregated joi
 head(demo_stops_and_revenues)
 ```
 
-After following the steps, the latest datasets to be used for the join are:
+After following the steps, the latest datasets to be used for the join
+are:
 
-demo_stops_and_revenues:
-This dataset is the result of joining demo_stops_filtered and merged_local_mob_revenus_aggregated_filtered. It contains the codeEPCI and corresponding public transport stop data along with revenue data at the intercommunalité level.
+1.  **demo_stops_and_revenues:**
 
-iltduu_aggregated_filtered:
-This dataset contains aggregated transportation-related data (e.g., worker transport shares, household car shares) at the codeEPCI level, after the necessary aggregation.
+This dataset is the result of joining demo_stops_filtered and
+merged_local_mob_revenus_aggregated_filtered. It contains the codeEPCI
+and corresponding public transport stop data along with revenue data at
+the intercommunalité level.
 
-mob_pro_aggregated_filtered:
-This dataset contains aggregated socio-economic data (e.g., number of households with two-wheelers, number of people per household) at the codeEPCI level, after the necessary aggregation.
+2.  **iltduu_aggregated_filtered:**
+
+This dataset contains aggregated transportation-related data (e.g.,
+worker transport shares, household car shares) at the codeEPCI level,
+after the necessary aggregation.
+
+3.  **mob_pro_aggregated_filtered**:
+
+This dataset contains aggregated socio-economic data (e.g., number of
+households with two-wheelers, number of people per household) at the
+codeEPCI level, after the necessary aggregation.
 
 ### Aggregating iltduu_aggregated_filtered
 
@@ -1769,11 +1900,13 @@ mob_pro_aggregated_final <- mob_pro_aggregated_filtered %>%
 
 Final datasets for joining:
 
-mob_pro_aggregated_final
-iltduu_aggregated_final
-demo_stops_and_revenues
+-   mob_pro_aggregated_final
 
-## Modifying the age category
+-   iltduu_aggregated_final
+
+-   demo_stops_and_revenues
+
+### Modifying the age category
 
 ```{r}
 # Aggregate age slices into 10-year intervals
@@ -1805,8 +1938,7 @@ mob_pro_aggregated_final <- mob_pro_aggregated_final %>%
 mob_pro_aggregated_final <- mob_pro_aggregated_final %>% select(-age_95_99_share)
 ```
 
-
-## Final joining
+### Final joining
 
 ```{r}
 # Perform the joins
@@ -1818,10 +1950,9 @@ final_dataset <- demo_stops_and_revenues %>%
 write.csv(final_dataset, "final_dataset.csv", row.names = FALSE)
 ```
 
-
 # Cleaning the join
 
-## 1. Remove Missing Values
+### Removing Missing Values
 
 ```{r}
 # Identify missing values in the dataset
@@ -1841,21 +1972,32 @@ missing_summary <- final_dataset_2 %>%
 
 print(missing_summary)
 ```
+
 List of the Intercommunautés with only zeros for categories :
-share_worker_public_transport, share_household_car, share_car_for_work, share_bike_for_work
+share_worker_public_transport, share_household_car, share_car_for_work,
+share_bike_for_work
 
-Communauté d'agglomération Cap Excellence (200018653)
-Communauté de communes des Savanes (200027548)
-Communauté d'agglomération La Riviera du Levant (200041507)
-Communauté d'agglomération du Nord Grande Terre (200044691)
-Communauté de communes de Marie-Galante (249710047)
-Communauté d'agglomération du Nord Basse-Terre (249710062)
-Communauté d'agglomération Grand Sud Caraïbe (249710070)
-Communauté de communes de l'Ouest Guyanais (249730037)
-Communauté d'agglomération du Centre Littoral (249730045)
-Communauté de communes de l'Est Guyanais (249730052)
+-   Communauté d'agglomération Cap Excellence (200018653)
 
-## 2. Handle Duplicates
+-   Communauté de communes des Savanes (200027548)
+
+-   Communauté d'agglomération La Riviera du Levant (200041507)
+
+-   Communauté d'agglomération du Nord Grande Terre (200044691)
+
+-   Communauté de communes de Marie-Galante (249710047)
+
+-   Communauté d'agglomération du Nord Basse-Terre (249710062)
+
+-   Communauté d'agglomération Grand Sud Caraïbe (249710070)
+
+-   Communauté de communes de l'Ouest Guyanais (249730037)
+
+-   Communauté d'agglomération du Centre Littoral (249730045)
+
+-   Communauté de communes de l'Est Guyanais (249730052)
+
+### Handle Duplicates
 
 ```{r}
 # Check for duplicate rows
@@ -1867,8 +2009,7 @@ cat("Number of duplicate rows:", sum(duplicates), "\n")
 view(duplicates)
 ```
 
-
-## 3. Normalize Column Names
+### Normalize Column Names
 
 ```{r}
 library(janitor)
@@ -1882,7 +2023,7 @@ print(names(final_dataset))
 
 ```
 
-## 4. Validate and Adjust Data Types
+### Validate and Adjust Data Types
 
 ```{r}
 # Check the data types of each column
@@ -1898,7 +2039,7 @@ final_dataset_4 <- final_dataset_3 %>%
 str(final_dataset_4)
 ```
 
-## 5. Remove total_nb and number_households
+### Remove total_nb and number_households
 
 ```{r}
 final_dataset_5 <- final_dataset_4 %>% select(-total_nb, -number_household_2021, -total_people, -total_cars)
@@ -1906,7 +2047,7 @@ final_dataset_5 <- final_dataset_5 %>%
   filter(!(code_epci %in% c(247400666, 246000772))) # removing ducplicates
 ```
 
-## 6. Detect Outliers
+### Detect Outliers
 
 ```{r}
 numeric_cols <- final_dataset_5 %>% select(where(is.numeric))
@@ -1917,7 +2058,8 @@ outliers <- numeric_cols %>%
 
 print(outliers)
 ```
-## 6. Handle Redundant Columns
+
+### Handle Redundant Columns
 
 ```{r}
 # Drop columns with excessive missing values (e.g., >50% NA)
@@ -1927,14 +2069,14 @@ cols_to_drop <- missing_summary %>%
   pull(Variable)
 ```
 
-## 7. Save the Cleaned Dataset
+### Save the Cleaned Dataset
+
 ```{r}
 
 #renaming one variable
 final_dataset_5 <- final_dataset_5 %>%
   rename(intercommunal_population_2021 = municipal_population_2021)
 ```
-
 
 ```{r}
 final_dataset_cleaned <- final_dataset_5
@@ -1961,41 +2103,47 @@ final_dataset_cleaned[share_columns] <- lapply(
 write.csv(final_dataset_cleaned, "final_dataset_cleaned.csv", row.names = FALSE)
 ```
 
-
 # First exploratory analysis post-join
 
-## 1. Generate Summary Statistics
+### Generate Summary Statistics
 
 ```{r}
 summary(final_dataset_cleaned)
 ```
 
-Some columns, such as outside_region_dom_share, outside_region_com_share, and abroad_share, have minimum and maximum values of zero or near-zero. This indicates that these variables might have very low representation or missing data across our dataset.
+Some columns, such as outside_region_dom_share,
+outside_region_com_share, and abroad_share, have minimum and maximum
+values of zero or near-zero. This indicates that these variables might
+have very low representation or missing data across our dataset.
 
-Intercommunautés where nb_stops is equal to zero. 
+Intercommunautés where nb_stops is equal to zero.
 
-Communauté de communes des Savanes (200027548)
-Communauté de communes du Pays de Trie et du Magnoac (200070795)
-Communauté de communes Saint Cyr Mère Boitier (200071645)
-Communauté de communes du Pays de Sancey-Belleherbe (242504371)
-Communauté de communes Altitude 800 (242504488)
-Communauté de communes du Causse de Labastide-Murat (244600573)
-Communauté de communes du Pays de Duras (244700449)
-Communauté de communes du Pays de Villersexel (247000714)
-Communauté de communes de Semur-en-Brionnais (247103864)
-Communauté de communes de Marie-Galante (249710047)
-Communauté d'agglomération Grand Sud Caraïbe (249710070)
-Communauté de communes de l'Ouest Guyanais (249730037)
+Communauté de communes des Savanes (200027548) Communauté de communes du
+Pays de Trie et du Magnoac (200070795) Communauté de communes Saint Cyr
+Mère Boitier (200071645) Communauté de communes du Pays de
+Sancey-Belleherbe (242504371) Communauté de communes Altitude 800
+(242504488) Communauté de communes du Causse de Labastide-Murat
+(244600573) Communauté de communes du Pays de Duras (244700449)
+Communauté de communes du Pays de Villersexel (247000714) Communauté de
+communes de Semur-en-Brionnais (247103864) Communauté de communes de
+Marie-Galante (249710047) Communauté d'agglomération Grand Sud Caraïbe
+(249710070) Communauté de communes de l'Ouest Guyanais (249730037)
 
-Columns like municipal_population_2021 and population_density_2021 have extremely high maximum values (7103801 for population and 8724.50 for density). This is expected and corresponds to Paris.
+Columns like municipal_population_2021 and population_density_2021 have
+extremely high maximum values (7103801 for population and 8724.50 for
+density). This is expected and corresponds to Paris.
 
-Many shares (e.g., public_transport_share, bicycle_share) are skewed toward the lower end, with very small means or medians compared to their maximum values. This probably reflects actual behaviors (e.g., low public transport usage in rural areas).
+Many shares (e.g., public_transport_share, bicycle_share) are skewed
+toward the lower end, with very small means or medians compared to their
+maximum values. This probably reflects actual behaviors (e.g., low
+public transport usage in rural areas).
 
-Age group shares like age_65_74_share and age_85_94_share have minimum values of zero. This is most likely due to missing data.
+Age group shares like age_65_74_share and age_85_94_share have minimum
+values of zero. This is most likely due to missing data.
 
-## 2. Visualizations
+### Visualizations {#visualizations}
 
-### Intercommunal population
+**Intercommunal population**
 
 ```{r}
 library(ggplot2)
@@ -2029,7 +2177,7 @@ ggplot(top_intercommunalities, aes(x = reorder(intercommunal_label, intercommuna
   theme_minimal()
 ```
 
-### Popoulation density
+**Popoulation density**
 
 ```{r}
 # Density plot for population density
@@ -2044,7 +2192,8 @@ ggplot(final_dataset_cleaned, aes(x = population_density_2021)) +
   theme_minimal()
 
 ```
-### Nb stops
+
+**Nb stops**
 
 ```{r}
 # Histogram for the distribution of the number of stops
@@ -2057,6 +2206,7 @@ ggplot(final_dataset_cleaned, aes(x = nb_stops)) +
   ) +
   theme_minimal()
 ```
+
 ```{r}
 # Top 20 intercommunalities by number of stops
 top_nb_stops <- final_dataset_cleaned %>%
@@ -2074,7 +2224,7 @@ ggplot(top_nb_stops, aes(x = reorder(intercommunal_label, nb_stops), y = nb_stop
   theme_minimal()
 ```
 
-### Transport type
+**Transport type**
 
 ```{r}
 # Reorder the factor levels directly in the mean_shares dataset
@@ -2147,8 +2297,7 @@ ggplot(mean_transport_shares, aes(x = reorder(Transport_Type, -Average_Share), y
   )
 ```
 
-
-### Age shares
+**Age shares**
 
 ```{r}
 # Convert the dataset to a long format for easier visualization
@@ -2177,10 +2326,8 @@ ggplot(average_age_shares, aes(x = Age_Group, y = Average_Share, fill = Age_Grou
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-
-## 3. First Exploratory Analysis Post-Join
-
-Checking relationships between population density vs. public transport usage
+**Checking relationships between population density vs. public transport
+usage**
 
 ```{r}
 ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_worker_public_transport)) +
@@ -2189,20 +2336,31 @@ ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_worker_
   labs(title = "Population Density vs Public Transport Share")
 
 ```
-## Last comments before analysis
 
-These intercommunautés have a median living standard of "0" due to missing valus and should be excluded when we conduct the analysis.
+### Last comments before analysis
 
-Communauté de communes de l'Ouest Guyanais (249730037)
-Communauté de communes des Savanes (200027548)
-Communauté de communes de Marie-Galante (249710047)
-Communauté d'agglomération Grand Sud Caraïbe (249710070)
-Communauté de communes de l'Est Guyanais (249730052)
-Communauté d'agglomération du Nord Basse-Terre (249710062)
-Communauté d'agglomération du Nord Grande Terre (200044691)
-Communauté d'agglomération du Centre Littoral (249730045)
-Communauté d'agglomération La Riviera du Levant (200041507)
-Communauté d'agglomération Cap Excellence (200018653)
+These intercommunautés have a median living standard of "0" due to
+missing valus and should be excluded when we conduct the analysis.
+
+-   Communauté de communes de l'Ouest Guyanais (249730037)
+
+-   Communauté de communes des Savanes (200027548)
+
+-   Communauté de communes de Marie-Galante (249710047)
+
+-   Communauté d'agglomération Grand Sud Caraïbe (249710070)
+
+-   Communauté de communes de l'Est Guyanais (249730052)
+
+-   Communauté d'agglomération du Nord Basse-Terre (249710062)
+
+-   Communauté d'agglomération du Nord Grande Terre (200044691)
+
+-   Communauté d'agglomération du Centre Littoral (249730045)
+
+-   Communauté d'agglomération La Riviera du Levant (200041507)
+
+-   Communauté d'agglomération Cap Excellence (200018653)
 
 ```{r}
 # Create a vector of codeEPCI values
@@ -2240,44 +2398,56 @@ columns_with_na <- colnames(final_dataset_cleaned2.0)[colSums(is.na(final_datase
 columns_with_na
 ```
 
-
-
 # Data analysis
 
-The dataset contains 1,248 entries and 51 columns. Key variables include:
+The dataset contains 1,248 entries and 51 columns. Key variables
+include:
 
-Demographics: Age groups, gender shares, education levels.
-Transportation Modes: Shares of commuting by public transport, car, bike, etc.
-Socioeconomic Indicators: Median living standards, socio-professional categories.
-Geographical Data: Population density, number of stops, commuting shares (e.g., within-residence commune).
-Employment Data: Shares by professional categories like artisans, cadres, and ouvriers.
+-   Demographics: Age groups, gender shares, education levels.
 
-In our analysis we will try to proceed with:
-Exploratory data analysis (EDA) with visualizations.
-Statistical tests to assess relationships.
+-   Transportation Modes: Shares of commuting by public transport, car,
+    bike, etc.
+
+-   Socioeconomic Indicators: Median living standards,
+    socio-professional categories.
+
+-   Geographical Data: Population density, number of stops, commuting
+    shares (e.g., within-residence commune).
+
+-   Employment Data: Shares by professional categories like artisans,
+    cadres, and ouvriers.
+
+In our analysis we will try to proceed with: Exploratory data analysis
+(EDA) with visualizations. Statistical tests to assess relationships.
 Modeling to predict commuting behavior based on these variables.
 
+1.  Exploratory Data Analysis (EDA) Graphical Representations:
 
-1. Exploratory Data Analysis (EDA)
-Graphical Representations: Use scatterplots, bar charts, and heatmaps to visually explore the relationships between:
-Commuting mode shares (e.g., public transport, car) and population density.
-Income levels and transportation choices.
-Urban/rural classification and commuting behavior.
-Distribution Analysis: Plot histograms or density plots for key variables like income, population density, and commuting distances.
+    Use scatterplots, bar charts, and heatmaps to visually explore the
+    relationships between: Commuting mode shares (e.g., public
+    transport, car) and population density. Income levels and
+    transportation choices. Urban/rural classification and commuting
+    behavior. Distribution Analysis: Plot histograms or density plots
+    for key variables like income, population density, and commuting
+    distances.
 
-2. Statistical Testing
-Use chi-squared tests (chisq.test()) for dependencies between categorical variables. For instance:
-Urban/rural classification vs. preferred transportation mode.
-Socio-professional category vs. car ownership.
+2.  Statistical Testing
 
-3. Causal Analysis with Linear Models
-Fit linear models (lm()) to explore potential causal relationships
-Interpret coefficients to understand the impact of each variable.
-Ensure confounding variables (e.g., age distribution, education levels) are included to improve causal inference.
+    Use chi-squared tests (chisq.test()) for dependencies between
+    categorical variables. For instance: Urban/rural classification vs.
+    preferred transportation mode. Socio-professional category vs. car
+    ownership.
 
-## 1. Exploratory Data Analysis (EDA)
+3.  Causal Analysis with Linear Models
 
-### 1. Scatterplots: Commuting Mode Shares vs. Population Density
+    Fit inear models (lm()) to explore potential causal relationships
+    Interpret coefficients to understand the impact of each variable.
+    Ensure confounding variables (e.g., age distribution, education
+    levels) are included to improve causal inference.
+
+### Exploratory Data Analysis (EDA)
+
+**Scatterplots: Commuting Mode Shares vs. Population Density**
 
 ```{r}
 # Scatterplot for Public Transport Share vs. Population Density
@@ -2301,7 +2471,8 @@ ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = car_truck_
   theme_minimal()
 
 ```
-### 2. Bar Plot: Income Levels vs. Transportation Choices
+
+**Bar Plot: Income Levels vs. Transportation Choices**
 
 ```{r}
 # Create income categories
@@ -2357,9 +2528,12 @@ ggplot(melted_data, aes(x = income_category, y = Share, fill = income_category))
   facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport_Mode
 
 ```
-### 3. Urban/Rural Classification vs. Commuting Behavior
 
-Le seuil de 150 habitants par kilomètre carré provient de la définition officielle de l'Insee pour les unités urbaines, qui servent à différencier les zones urbaines des zones rurales en France.
+**Urban/Rural Classification vs. Commuting Behavior**
+
+The threshold of 150 inhabitants per square kilometer comes from Insee's
+official definition of urban units, which are used to differentiate
+between urban and rural areas in France.
 
 ```{r}
 final_dataset_cleaned2.0_3 <- final_dataset_cleaned2.0 %>%
@@ -2376,7 +2550,7 @@ ggplot(final_dataset_cleaned2.0_3, aes(x = urban_rural, y = car_truck_van_share)
   theme_minimal()
 ```
 
-### Correlation between public_transport_share
+**Correlation between public_transport_share**
 
 ```{r}
 # Compute Pearson and Spearman correlations
@@ -2401,12 +2575,13 @@ ggplot(final_dataset_cleaned2.0, aes(x = nb_stops, y = public_transport_share)) 
   theme_minimal()
 ```
 
-The Spearman correlation is stronger than the Pearson correlation, which might indicate that the relationship is not strictly linear (fx.it could plateau at higher numbers of stops or be influenced by outliers).
+The Spearman correlation is stronger than the Pearson correlation, which
+might indicate that the relationship is not strictly linear (fx.it could
+plateau at higher numbers of stops or be influenced by outliers).
 
+### Statistical Testing {#statistical-testing}
 
-## 2. Statistical Testing
-
-### 1. Urban/Rural Classification vs. Preferred Transportation Mode
+**Urban/Rural Classification vs. Preferred Transportation Mode**
 
 ```{r}
 # Create urban/rural classification
@@ -2449,8 +2624,7 @@ chisq_test_urban_transport
 
 There is evidence of a significant association between the variables.
 
-
-### 2. Socio-Professional Category vs. Car Ownership
+**Socio-Professional Category vs. Car Ownership**
 
 ```{r}
 sum(is.na(final_dataset_cleaned2.0_4$socio_professional_cat))
@@ -2460,7 +2634,6 @@ nrow(final_dataset_cleaned2.0_4)
 length(final_dataset_cleaned2.0_4$socio_professional_cat)
 length(final_dataset_cleaned2.0_4$car_ownership_category)
 ```
-
 
 ```{r}
 # Step 1: Bin car ownership into categories
@@ -2487,5 +2660,3 @@ print("Chi-Squared Test Results:")
 print(chi_squared_test)
 
 ```
-
-
