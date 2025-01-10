@@ -29,13 +29,83 @@ knitr::opts_chunk$set(
 6.  [Cleaning the Join](#cleaning-the-join)
 7.  [First Exploratory Analysis](#first-exploratory-analysis)
 8.  [Data Analysis](#data-analysis)
+9.  [Discussion](#discussion)
 
 [Link to the github
 projec](https://github.com/jemappelleyesmine/final_project)
 
 # Introduction {#introduction}
 
-WRITE INTO
+#### **Context and Relevance**
+
+-   **Background on Commuting Behavior:**
+
+    -   Commuting is a daily activity that affects millions of people in
+        France and globally.
+
+    -   The mode of transport chosen has a significant impact on energy
+        consumption, urban planning, and the environment.
+
+-   **Why this Question Matters:**
+
+    -   Identifying the key factors influencing transport choices can
+        help policymakers target interventions effectively.
+
+    -   Understanding socio-economic, demographic, and infrastructural
+        drivers of commuting behaviors can guide investment in
+        sustainable transport systems.
+
+    -   Insights into these factors can promote equity in transportation
+        access, ensuring rural and low-income populations are not left
+        behind.
+
+-   **Link to Climate Change:**
+
+    -   Transportation accounts for a significant share of global
+        greenhouse gas (GHG) emissions, with private vehicles being a
+        major contributor.
+
+    -   Shifting commuters from high-carbon modes like cars to
+        lower-carbon options like public transport, cycling, or walking
+        is essential for meeting climate goals such as those outlined in
+        the Paris Agreement.
+
+    -   France has committed to reducing its carbon footprint, and
+        understanding commuter behavior is vital for designing effective
+        policies to encourage sustainable transportation choices.
+
+-   **Broader Impacts:**
+
+    -   Beyond climate change, transport choices affect public health
+        (e.g., air quality, physical activity) and quality of life
+        (e.g., time spent commuting, stress levels).
+
+    -   Aligning commuter preferences with sustainable goals can create
+        co-benefits, such as improved urban mobility, reduced traffic
+        congestion, and healthier lifestyles.
+
+-   **Importance of the Study:**
+
+    -   **For Policymakers:**
+
+        -   Results can guide targeted investments in public transport
+            and cycling infrastructure.
+
+        -   Policies can be tailored to different socio-economic groups
+            and geographic contexts to maximize impact.
+
+    -   **For Society:**
+
+        -   Promoting sustainable transport can contribute to lower
+            emissions, improved health outcomes, and more equitable
+            access to mobility.
+
+    -   **For Research:**
+
+        -   Adds to the growing body of literature on transport
+            behavior, with a specific focus on France, offering insights
+            that may be applicable to other countries with similar
+            challenges.
 
 # Research question {#research-question}
 
@@ -50,19 +120,26 @@ with different levels of aggregation. We chose to investigate several
 factors influencing commuter behavior based on the availability of
 datasets and the type of information that could be publicly available.
 
-Here are some factors that we have thought of: - Type of Area (Urban or
-Rural) Commuting options and preferences may differ between urban and
-rural areas due to infrastructure availability, population density, and
-economic activity. - Socio-Professional Category and Income Levels
-Professional status and income levels might play a role in
-transportation choices (affordability, accessibility). - Population
-Density Denser areas may encourage the use of public transit and
-non-motorized options, while less dense regions may rely more heavily on
-private vehicles. - Commuting Distance The length of the commute is an
-important variable, as it could dictate whether an individual opts for
-walking, cycling, driving, or public transit. - Accessibility to
-Transportation Infrastructure The availability of public transit could
-affect convenience and practicality.
+Here are some factors that we have thought of:
+
+-   **Type of Area (Urban or Rural)**: Commuting options and preferences
+    may differ between urban and rural areas due to infrastructure
+    availability, population density, and economic activity.
+
+-   **Socio-Professional Category and Income Levels**: Professional
+    status and income levels might play a role in transportation choices
+    (affordability, accessibility).
+
+-   **Population Density**: Denser areas may encourage the use of public
+    transit and non-motorized options, while less dense regions may rely
+    more heavily on private vehicles.
+
+-   **Commuting Distance**: The length of the commute is an important
+    variable, as it could dictate whether an individual opts for
+    walking, cycling, driving, or public transit.
+
+-   **Accessibility to Transportation Infrastructure**: The availability
+    of public transit could affect convenience and practicality.
 
 Our project involves several steps: firstly, we must collect, store, and
 organize datasets in a GitHub repository. Since datasets are aggregated
@@ -2149,6 +2226,11 @@ ggplot(final_dataset_cleaned, aes(x = intercommunal_population_2021)) +
 ```{r}
 library(ggplot2)
 
+# Define the top intercommunalities by population
+top_intercommunalities <- final_dataset_cleaned %>%
+  arrange(desc(intercommunal_population_2021)) %>%
+  head(20)
+
 # Bar chart for top 20 intercommunalities with formatted x-axis
 ggplot(top_intercommunalities, aes(x = reorder(intercommunal_label, intercommunal_population_2021), y = intercommunal_population_2021)) +
   geom_bar(stat = "identity", fill = "dodgerblue") +
@@ -2212,28 +2294,6 @@ ggplot(top_nb_stops, aes(x = reorder(intercommunal_label, nb_stops), y = nb_stop
 **Transport type**
 
 ```{r}
-# Reorder the factor levels directly in the mean_shares dataset
-mean_shares <- mean_shares %>%
-  mutate(Transport_Type = factor(Transport_Type, levels = c(
-    "share_bike_for_work", 
-    "share_worker_public_transport", 
-    "share_car_for_work", 
-    "share_household_car"
-  )))
-
-# Create the bar plot
-ggplot(mean_shares, aes(x = Transport_Type, y = Average_Share, fill = Transport_Type)) +
-  geom_bar(stat = "identity") +
-  labs(
-    title = "Average Transport Shares Across Intercommunalities",
-    x = "Transport Type",
-    y = "Average Share (%)"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-```{r}
 # Select the relevant columns and pivot to long format
 transport_shares_long <- final_dataset_cleaned %>%
   select(
@@ -2266,6 +2326,26 @@ transport_shares_long <- transport_shares_long %>%
 mean_transport_shares <- transport_shares_long %>%
   group_by(Transport_Type) %>%
   summarise(Average_Share = mean(Share, na.rm = TRUE))
+
+
+# Calculate mean shares for each transport type
+mean_shares <- transport_shares_long %>%
+  group_by(Transport_Type) %>%
+  summarise(Average_Share = mean(Share, na.rm = TRUE))
+
+#Reorder the factor levels directly in the mean_shares dataset
+
+mean_shares <- mean_shares %>%
+  mutate(Transport_Type = factor(Transport_Type, levels = c(
+    "share_bike_for_work", 
+    "share_worker_public_transport", 
+    "share_car_for_work", 
+    "share_household_car"
+  )))
+
+```
+
+```{r}
 
 # Create a bar chart
 ggplot(mean_transport_shares, aes(x = reorder(Transport_Type, -Average_Share), y = Average_Share, fill = Transport_Type)) +
@@ -2471,7 +2551,7 @@ final_dataset_cleaned2.0_2 <- final_dataset_cleaned2.0 %>%
 
 
 # Melt the data for transportation modes
-melted_data <- final_dataset_cleaned %>%
+melted_data <- final_dataset_cleaned2.0_2 %>%
   select(
     income_category,
     no_transport_share,
@@ -2570,11 +2650,11 @@ plateau at higher numbers of stops or be influenced by outliers).
 
 ```{r}
 # Create urban/rural classification
-final_dataset_cleaned2.0 <- final_dataset_cleaned2.0 %>%
+final_dataset_cleaned2.0_5 <- final_dataset_cleaned2.0 %>%
   mutate(urban_rural = ifelse(population_density_2021 > 150, "Urban", "Rural"))
 
 # Create contingency table
-urban_transport_table <- final_dataset_cleaned2.0 %>%
+urban_transport_table <- final_dataset_cleaned2.0_5 %>%
   select(urban_rural, no_transport_share, on_foot_share, bicycle_share, 
          motorized_two_wheelers_share, car_truck_van_share, public_transport_share) %>%
   pivot_longer(cols = starts_with("no_transport_share"):starts_with("public_transport_share"),
@@ -2611,42 +2691,9 @@ There is evidence of a significant association between the variables.
 
 **Socio-Professional Category vs. Car Ownership**
 
-```{r}
-sum(is.na(final_dataset_cleaned2.0_4$socio_professional_cat))
-sum(is.na(final_dataset_cleaned2.0_4$car_ownership_category))
+TO DO
 
-nrow(final_dataset_cleaned2.0_4)
-length(final_dataset_cleaned2.0_4$socio_professional_cat)
-length(final_dataset_cleaned2.0_4$car_ownership_category)
-```
-
-```{r}
-# Step 1: Bin car ownership into categories
-final_dataset_cleaned2.0_4 <- final_dataset_cleaned2.0 %>%
-  mutate(
-    car_ownership_category = cut(
-      share_household_car,
-      breaks = c(-Inf, 80, 90, 100), # Adjust bins as needed
-      labels = c("Low", "Medium", "High"),
-      include.lowest = TRUE
-    )
-  )
-
-# Step 2: Create a contingency table
-contingency_table <- table(final_dataset_cleaned2.0_4$socio_professional_cat, final_dataset_cleaned2.0$car_ownership_category)
-
-# Step 3: Perform the Chi-Squared Test
-chi_squared_test <- chisq.test(contingency_table)
-
-# Print Results
-print("Contingency Table:")
-print(contingency_table)
-print("Chi-Squared Test Results:")
-print(chi_squared_test)
-
-```
-
-# Discussion
+# Discussion {#discussion}
 
 -   Would also be interesting to perform a causal analysis
 
