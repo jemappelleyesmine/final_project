@@ -349,6 +349,49 @@ revenus <- vroom(here("data","INSEE_Statistiques_locales_menages_fiscaux_niveau_
 local_mob <- vroom(here("data","INSEE_Statistiques_locales_territoires_ville_quartiers.csv"))
 ```
 
+### Summary Tables
+
+```{r echo = FALSE, results='asis'}
+# Load required libraries
+library(tibble)
+library(knitr)
+
+
+# Define datasets
+datasets <- list(
+  iltduu_sexe_trans = iltduu_sexe_trans,
+  stops_france = stops_france,
+  mob_pro = mob_pro,
+  var_mob_pro = var_mob_pro,
+  revenus = revenus,
+  demo = demo,
+  local_mob = local_mob
+)
+
+# Generate a table for each dataset
+for (name in names(datasets)) {
+  # Access the dataset
+  data <- datasets[[name]]
+  # Compute basic information
+  summary_table <- tibble(
+    Statistic = c(
+      "Number of Rows",
+      "Number of Columns"
+    ),
+    Value = c(
+      nrow(data),
+      ncol(data)
+    )
+  )
+
+ # Print a heading and the table in LaTeX format
+print(knitr::kable(summary_table, format = "pipe", caption = paste("Summary for Dataset:", name))
+  )
+  cat("\n")
+}
+  
+```
+
 ### Description of the sources
 
 Our first source is the “Statistiques Locales” platform by INSEE. This
@@ -388,48 +431,6 @@ residence and work at the municipal level, including cross-border
 commuting. It provides information on individuals aged 15 and older who
 are employed, with variables describing their household, primary
 residence, and commuting patterns.
-
-```{r}
-# Load required libraries
-library(tibble)
-library(knitr)
-
-# Define datasets
-datasets <- list(
-  iltduu_sexe_trans = iltduu_sexe_trans,
-  stops_france = stops_france,
-  mob_pro = mob_pro,
-  var_mob_pro = var_mob_pro,
-  revenus = revenus,
-  demo = demo,
-  local_mob = local_mob
-)
-
-# Generate a table for each dataset
-for (name in names(datasets)) {
-  # Access the dataset
-  data <- datasets[[name]]
-  # Compute basic information
-  summary_table <- tibble(
-    Statistic = c(
-      "Number of Rows",
-      "Number of Columns"
-    ),
-    Value = c(
-      nrow(data),
-      ncol(data)
-    )
-  )
-
-  # Print a heading and the table
-cat("\n### Summary Table for Dataset:", name, "\n")
-print(
-  kable(summary_table, format = "pipe", caption = paste("Summary Table for Dataset:", name))
-)
-cat("\n")
-}
-  
-```
 
 ### Description of the main variables
 
