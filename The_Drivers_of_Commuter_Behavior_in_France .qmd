@@ -776,8 +776,6 @@ var_mob_pro_cleaned <- datasets_cleaned$var_mob_pro
 
 # Compare variable names across datasets
 variable_names <- lapply(datasets_cleaned, names)
-print("Variable names in each dataset:")
-print(variable_names)
 
 # Rename variables in demo_cleaned
 demo_cleaned <- demo_cleaned %>%
@@ -857,12 +855,7 @@ iltduu_sexe_trans_cleaned <- iltduu_sexe_trans_cleaned %>%
    # We have to look at what nivgeo and nb are more specifically before renaming them. 
   )
 
-# Verify the renamed variables
-list(
-  demo_cleaned = names(demo_cleaned),
-  local_mob_cleaned = names(local_mob_cleaned),
-  revenus_cleaned = names(revenus_cleaned)
-)
+
 ```
 
 ### Removing the descriptive meta data
@@ -872,11 +865,6 @@ list(
 demo_cleaned <- demo_cleaned[-c(1, 2), ]
 local_mob_cleaned <- local_mob_cleaned[-c(1, 2), ]
 revenus_cleaned <- revenus_cleaned[-c(1, 2), ]
-
-# Preview the updated datasets
-head(demo_cleaned)
-head(local_mob_cleaned)
-head(revenus_cleaned)
 ```
 
 ### Removing irrelevant columns
@@ -893,7 +881,6 @@ library(dplyr)
 mob_pro_cleaned <- mob_pro_cleaned %>%
   select(-immigration_status, -nationality, -nb_students_trainee_over_14_household, -weight, -link_household_reference_person, -cohabitation_mode, -nb_employed_people_household, -nb_scolarised_people_household, - residency_district) 
 
-colnames(mob_pro_cleaned)
 ```
 
 **In stops_france**
@@ -903,12 +890,11 @@ colnames(mob_pro_cleaned)
 stops_france_cleaned <- stops_france_cleaned %>%
   select(dataset_custom_title, dataset_organisation, stop_id, stop_name, stop_lat, stop_lon) 
 
-colnames(stops_france_cleaned)
 ```
 
 ### Validating each data type
 
-```{r}
+```{r include = FALSE}
 # Validate and adjust data types for demo_cleaned
 str(demo_cleaned)  # Check current types
 demo_cleaned <- demo_cleaned %>%
@@ -1214,8 +1200,6 @@ row_summary <- data.frame(
   Duplicates_Removed = initial_rows - final_rows
 )
 
-# Print the summary
-print(row_summary)
 ```
 
 # Data Joining {#data-joining}
@@ -1237,7 +1221,7 @@ datasets_cleaned$merged_local_mob_revenus <- merged_local_mob_revenus  # Add the
 
 ### From Commune to Intercommunalité
 
-```{r}
+```{r include = FALSE}
 library(vroom)
 library(here)
 here::i_am("Final_Project_Commuter_behavior.Rproj")
@@ -1400,7 +1384,7 @@ iltduu_transformed <- iltduu_sexe_trans_cleaned %>%
 
 ```
 
-```{r}
+```{r include = FALSE}
 # Aggregate data to have 60 entries per codeEPCI
 iltduu_aggregated <- iltduu_transformed %>%
   group_by(
@@ -1631,7 +1615,7 @@ Now there are 1266 entries in stops_summary_updated. However only 1255
 in demo_cleaned. There are 11 codeEPCIs that are missing in
 demo_cleaned.
 
-```{r}
+```{r include = FALSE}
 # Extract the EPCI codes from both datasets
 demo_epci_codes <- demo_cleaned$intercommunal_code
 com_to_epci_codes <- COM_to_EPCI_filtered$codeEPCI
@@ -1665,7 +1649,7 @@ ADD 16 NA to those EPCI.
 
 Perform the join.
 
-```{r}
+```{r include = FALSE}
 
 # Convert intercommunal_code in demo_cleaned to numeric
 demo_cleaned <- demo_cleaned %>%
@@ -1697,7 +1681,7 @@ We should still handle the "NA" in the resulting dataset.
 
 ### Handle missing two wheeler observations in mob pro dataset
 
-```{r}
+```{r include = FALSE}
 # Step 2: Handle missing values in nb_household_two_wheelers
 
 # Calculate the proportion of NaN (missing) values in nb_household_two_wheelers
@@ -1768,7 +1752,7 @@ demo_stops <- demo_stops %>%
 
 ```
 
-```{r}
+```{r include = FALSE}
 # Step 1: Extract unique codeEPCI values from each dataset
 demo_stops_unique_codes <- unique(demo_stops$codeEPCI)
 mob_pro_unique_codes <- unique(mob_pro_aggregated$codeEPCI)
@@ -1785,7 +1769,7 @@ cat("Unique codeEPCI in merged_local_mob_revenus_aggregated: ", length(merged_lo
 **Only keeping the observations with codeEPCI that are common to all
 datasets**
 
-```{r}
+```{r include = FALSE}
 # Step 1: Identify the common codeEPCI values across all datasets
 common_codeEPCI <- Reduce(intersect, list(
   demo_stops$codeEPCI,
@@ -1816,7 +1800,7 @@ cat("Unique codeEPCI in merged_local_mob_revenus_aggregated_filtered: ", length(
 
 ### Joining demo_stops_filtered and merged_local_mob_revenus_aggregated_filtered
 
-```{r}
+```{r include = FALSE}
 # Step 1: Join demo_stops_filtered and merged_local_mob_revenus_aggregated_filtered
 demo_stops_and_revenues <- demo_stops_filtered %>%
   left_join(merged_local_mob_revenus_aggregated_filtered, by = "codeEPCI")
@@ -1988,7 +1972,7 @@ write.csv(final_dataset, "final_dataset.csv", row.names = FALSE)
 
 ### Removing Missing Values
 
-```{r}
+```{r include = FALSE}
 # Identify missing values in the dataset
 missing_summary <- final_dataset %>%
   summarise(across(everything(), ~ sum(is.na(.)))) %>%
@@ -2033,7 +2017,7 @@ share_bike_for_work
 
 ### Handle Duplicates
 
-```{r}
+```{r include = FALSE}
 # Check for duplicate rows
 duplicates <- final_dataset_2 %>%
   duplicated()
@@ -2045,7 +2029,7 @@ view(duplicates)
 
 ### Normalize Column Names
 
-```{r}
+```{r include = FALSE}
 library(janitor)
 
 # Clean column names
@@ -2059,7 +2043,7 @@ print(names(final_dataset))
 
 ### Validate and Adjust Data Types
 
-```{r}
+```{r include = FALSE}
 # Check the data types of each column
 str(final_dataset)
 
@@ -2083,7 +2067,7 @@ final_dataset_5 <- final_dataset_5 %>%
 
 ### Detect Outliers
 
-```{r}
+```{r include = FALSE}
 numeric_cols <- final_dataset_5 %>% select(where(is.numeric))
 
 outliers <- numeric_cols %>%
@@ -2141,7 +2125,7 @@ write.csv(final_dataset_cleaned, "final_dataset_cleaned.csv", row.names = FALSE)
 
 ### Generate Summary Statistics
 
-```{r}
+```{r include = FALSE}
 summary(final_dataset_cleaned)
 ```
 
@@ -2426,7 +2410,7 @@ transport_share_columns <- c(
 final_dataset_cleaned2.0 <- final_dataset_cleaned %>% select(-transport_share_columns)
 ```
 
-```{r}
+```{r include = FALSE}
 # Check for NA values in all columns
 colSums(is.na(final_dataset_cleaned2.0))
 
