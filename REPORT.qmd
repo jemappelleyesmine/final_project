@@ -1,0 +1,76 @@
+---
+title: "How does commuting behavior vary across different socio-economic, geographic, and infrastructural factors in France?"
+author: "Mathilde VALLAT, Yesmine HACHANA"
+format: pdf
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+# Load knitr package
+library(knitr)
+
+# Set global chunk options
+knitr::opts_chunk$set(
+  echo = FALSE,    # Hide all code
+  message = FALSE, # Suppress messages
+  warning = FALSE  # Suppress warnings
+)
+```
+
+# Table of Contents
+
+1.  [Introduction](#introduction)
+2.  [Research Question](#research-question)
+3.  [Datasets](#datasets)
+4.  [Data Analysis](#data-analysis)
+5.  [Discussion](#discussion)
+6.  [Conclusion](#conclusion)
+7.  [Sources](#sources)
+
+[Link to the github
+project](https://github.com/jemappelleyesmine/final_project)
+
+# Introduction {#introduction}
+
+As our modern societies have increased the distance between home and workplace for most, commuting has become part of our daily routine. It influences a countries energy use, urban development, and environmental sustainability. In France, transportation accounts for a significant share of national greenhouse gas (GHG) emissions (in 2021, transport emissions amount to 126.0 Mt CO2 eq, equivalent to 30% of the national total, source 1), with private vehicles being a major contributor (53% in 2021, i.e. 66.4 Mt CO2 eq., source 1). Shifting commuters from high-carbon modes like cars to lower-carbon options like public transport, cycling, or walking is essential for meeting climate goals such as those outlined in the Paris Agreement. France has committed to reducing its carbon footprint, and understanding commuter behavior is vital for designing effective policies to encourage sustainable transportation choices. Beyond climate change, transport choices affect both public health (e.g., air quality, physical activity) and quality of life (e.g., time spent commuting, stress levels). Such that aligning commuter preferences with sustainable goals can create co-benefits, such as improved urban mobility, reduced traffic congestion, and healthier lifestyles.
+
+We are interested in this topic because commuting behavior reflects the complex interplay of socio-economic realities, urban design, and environmental priorities, shaping both our daily lives and the future of our planet. Understanding commuting behavior can help policymakers design targeted interventions that promote sustainable and equitable transport systems. For society, this research supports efforts to reduce emissions, improve public health, and ensure accessible mobility for all, while contributing valuable insights to the academic study of transport behavior, particularly within the French context.
+
+# Research question {#research-question}
+
+Our research question explores how commuting behavior varies across different socio-economic, geographic, and infrastructural factors in France. This project aims to identify patterns and differences in commuting choices based on key factors, such as urbanization, income, population density, commuting distance, and accessibility to transportation infrastructure, using large publicly available datasets with varying levels of aggregation. By cleaning, harmonizing, and analyzing these datasets, we will summarize variables and visualize relationships to better understand how these factors correlate with commuting behavior. While this study does not attempt to infer causal relationships, it seeks to produce clear visualizations and highlight meaningful patterns that can inform policymakers and contribute to ongoing research on transportation behavior in France.
+
+Here are some factors and the associated variables that we have thought of:
+
+-   **Demographic factors**: age, gender, educational attainment and socio-professional category
+-   **Income levels**: median living standard
+-   **Infrastructures and urban/rural areas**: proximity to transport infrastructure and population density
+-   **Commuting distances**: commuting destinations
+-   **Car ownership**: share of houselholds owning a car
+
+Our project involves several steps: firstly, we collect, store, and
+organize datasets in a GitHub repository. Since datasets are aggregated
+at varying levels (e.g., “commune” vs. “intercommunal” and with
+"lon/lat"), we then have to harmonize these differences using data
+management methods seen in class. In parallel, we look for
+missing or inconsistent data that may complicate our data analysis.
+After this, we start initial data exploration, summarize variables using R and ultimately generate visualizations to identify patterns.
+
+# Datasets {#datasets}
+
+
+
+# Data Analysis {#data-analysis}
+
+Mention that some factors probably matter more than others. - use qui 2 test?
+Write hypotheses.
+
+Using density as a proxy for urban/rural indicator
+
+# Sources {#sources}
+
+
+1.    https://www.statistiques.developpement-durable.gouv.fr/edition-numerique/chiffres-cles-transports-2023/20-emissions-de-gaz-a-effet#:~:text=Les%20%C3%A9missions%20des%20transports%20a%C3%A9riens%20sont%20ainsi%20deux%20fois%20moins,de%20GES%20de%20la%20France.
+
