@@ -2457,6 +2457,10 @@ transport_share_columns <- c(
 )
 
 final_dataset_cleaned2.0 <- final_dataset_cleaned %>% select(-transport_share_columns)
+
+# Save the cleaned dataset to a CSV file
+write.csv(final_dataset_cleaned2.0, "final_dataset_cleaned.csv", row.names = FALSE)
+
 ```
 
 ```{r include = FALSE}
@@ -2571,8 +2575,8 @@ These bar plots show the link between the median standard of living in an interc
 -   The two income categories that bike the most are low and high.
 -   For all categories, cars, trucks and vans are by far the most common modes of transport.
 -   Mothorized two-wheelers are particularly used in intercommunautés with mid-low median living standards.
--   The higher the median standard of living in an intercommunauté, the lower the average share of people using "no transport".
--   
+-   The higher the median standard of living in an intercommunauté, the lower the average share of people not using transport.
+-   Mostly 
 
 
 **Urban/Rural Classification vs. Commuting Behavior**
@@ -2693,8 +2697,6 @@ TO DO
 # Discussion {#discussion}
 
 -   Would also be interesting to perform a causal analysis. However, we cannot account for all confounding variables.
-
+-   Modeling to predict commuting behavior based on these variables.
 -   Eventually try to measure the impact of remote working on commute
     behavior (compare pre and post covid data)
-    
--   Modeling to predict commuting behavior based on these variables.
