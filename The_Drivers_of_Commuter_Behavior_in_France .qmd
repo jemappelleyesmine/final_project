@@ -159,10 +159,6 @@ simple ways to visualize and understand those patterns.
 
 # Datasets {#datasets}
 
-## Source Descriptions {#source-descriptions}
-
-This section describes the datasets used in the analysis, including
-sources and how the data was selected.
 
 ### INSEE Demographic Data
 
