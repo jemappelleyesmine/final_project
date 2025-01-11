@@ -6,6 +6,7 @@ editor:
   markdown: 
     wrap: 72
 ---
+
 ```{r setup, include=FALSE}
 # Load knitr package
 library(knitr)
@@ -17,6 +18,7 @@ knitr::opts_chunk$set(
   warning = FALSE  # Suppress warnings
 )
 ```
+
 [Link to the github
 project](https://github.com/jemappelleyesmine/final_project)
 
@@ -68,11 +70,11 @@ relationships, it seeks to produce clear visualizations and highlight
 meaningful patterns that can inform policymakers and contribute to
 ongoing research on transportation behavior in France.
 
-Here are some factors that might influence commuting behavior and the associated variables that we have thought
-of:
+Here are some factors that might influence commuting behavior and the
+associated variables that we have thought of:
 
--   **Socio-demographic factors**: age, gender, educational attainment and
-    socio-professional category
+-   **Socio-demographic factors**: age, gender, educational attainment
+    and socio-professional category
 -   **Income levels**: median living standard
 -   **Infrastructures and urban/rural areas**: proximity to transport
     infrastructure and population density
@@ -226,18 +228,109 @@ print(knitr::kable(summary_table, format = "pipe"))
 
 # Data Analysis
 
-Mention that some factors probably matter more than others. - use qui 2
-test? Write hypotheses.
+The data analysis aims to uncover patterns in commuting behavior across
+France by exploring socio-demographic, economic, geographic, and
+infrastructural variables. By systematically examining these factors, we
+seek to identify trends and relationships that shape commuting choices.
 
-Using density as a proxy for urban/rural indicator
+## Socio-demographic factors
+
+Hypothesis:
+
+-   Younger individuals are more likely to use active modes of transport
+    (e.g., cycling, walking) or public transport, while older
+    individuals may prefer private vehicles.
+
+-   Men may have a higher likelihood of using private vehicles or
+    motorized two-wheelers, whereas women may rely more on public
+    transport.
+
+-   Higher educational attainment correlates with increased use of
+    sustainable transport modes due to environmental awareness.
+
+-   Socio-professional categories determine affordability and
+    accessibility: higher-income professionals may prefer private
+    vehicles, while workers in intermediate or lower categories might
+    rely on public transport.
+
+### Age
+
+### Gender
+
+### Educational attainment
+
+### Socio-professional category
+
+## Income levels
+
+Living standard
+
+Hypothesis:
+
+-   Wealthier households may prioritize comfort and convenience, opting
+    for private cars or motorized transport.
+
+-   Lower-income individuals may prefer public transport or walking due
+    to affordability constraints.
+
+## Infrastructures and urban/rural areas
+
+Using density as a proxy for urban/rural indicator proximity to
+transport infrastructure and population density
+
+Hypothesis:
+Proximity to transport infrastructure and population density affect the
+accessibility and practicality of transport modes.
+
+-   Urban residents (higher density areas) are more likely to use public
+    transport or active transport due to better availability of
+    infrastructure and shorter travel distances.
+
+-   Rural residents (lower density areas) are more dependent on private
+    vehicles due to limited access to public transport options.
+
+### Infrastructures
+
+### Uban/rural areas
+
+## Commuting distances
+
+commuting destinations
+
+**Hypothesis:**\
+Commuting distances determine the feasibility of transport modes.
+
+-   Shorter distances are associated with active modes (walking,
+    cycling), while longer distances are more likely to necessitate the
+    use of private vehicles or public transport.
+
+-   Very long commutes may encourage reliance on private cars or trains,
+    depending on infrastructure availability.
+
+## Car ownership
+
+share of houselholds owning a car
+
+**Hypothesis:**\
+Car ownership directly influences the likelihood of using private
+vehicles for commuting.
+
+-   Households with cars are more likely to rely on them for commuting,
+    especially in areas with limited public transport options.
+
+-   Households without cars are more likely to depend on public
+    transport, walking, or cycling for their commuting needs.
 
 # Discussion
 
--   Would also be interesting to perform a causal analysis. However, we cannot account for all confounding variables.
+-   Mention that some factors probably matter more than others. - use
+    qui 2 test?
+-   Would also be interesting to perform a causal analysis. However, we
+    cannot account for all confounding variables.
 -   Modeling to predict commuting behavior based on these variables.
 -   Eventually try to measure the impact of remote working on commute
     behavior (compare pre and post covid data)
-    
+
 https://hbr.org/2019/12/why-its-so-hard-to-change-peoples-commuting-behavior
 
 # Conclusion
