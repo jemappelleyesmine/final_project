@@ -32,11 +32,11 @@ knitr::opts_chunk$set(
 9.  [Discussion](#discussion)
 
 [Link to the github
-projec](https://github.com/jemappelleyesmine/final_project)
+project](https://github.com/jemappelleyesmine/final_project)
 
 # Introduction {#introduction}
 
-#### **Context and Relevance**
+**Context and Relevance**
 
 -   **Background on Commuting Behavior:**
 
@@ -164,7 +164,7 @@ simple ways to visualize and understand those patterns.
 This section describes the datasets used in the analysis, including
 sources and how the data was selected.
 
-### **INSEE Demographic Data**
+### INSEE Demographic Data
 
 INSEE_Statistiques_locales_demographie.csv
 
@@ -1173,7 +1173,7 @@ mob_pro_cleaned <- mob_pro_cleaned %>%
 
 ### Removing duplicates
 
-```{r}
+```{r include = FALSE}
 library(dplyr)
 
 # Store initial row counts
@@ -2136,16 +2136,29 @@ have very low representation or missing data across our dataset.
 
 Intercommunautés where nb_stops is equal to zero.
 
-Communauté de communes des Savanes (200027548) Communauté de communes du
-Pays de Trie et du Magnoac (200070795) Communauté de communes Saint Cyr
-Mère Boitier (200071645) Communauté de communes du Pays de
-Sancey-Belleherbe (242504371) Communauté de communes Altitude 800
-(242504488) Communauté de communes du Causse de Labastide-Murat
-(244600573) Communauté de communes du Pays de Duras (244700449)
-Communauté de communes du Pays de Villersexel (247000714) Communauté de
-communes de Semur-en-Brionnais (247103864) Communauté de communes de
-Marie-Galante (249710047) Communauté d'agglomération Grand Sud Caraïbe
-(249710070) Communauté de communes de l'Ouest Guyanais (249730037)
+-   Communauté de communes des Savanes (200027548)
+
+-   Communauté de communes du Pays de Trie et du Magnoac (200070795)
+
+-   Communauté de communes Saint Cyr Mère Boitier (200071645)
+
+-   Communauté de communes du Pays de Sancey-Belleherbe (242504371)
+
+-   Communauté de communes Altitude 800 (242504488)
+
+-   Communauté de communes du Causse de Labastide-Murat (244600573)
+
+-   Communauté de communes du Pays de Duras (244700449)
+
+-   Communauté de communes du Pays de Villersexel (247000714)
+
+-   Communauté de communes de Semur-en-Brionnais (247103864)
+
+-   Communauté de communes de Marie-Galante (249710047)
+
+-   Communauté d'agglomération Grand Sud Caraïbe (249710070)
+
+-   Communauté de communes de l'Ouest Guyanais (249730037)
 
 Columns like municipal_population_2021 and population_density_2021 have
 extremely high maximum values (7103801 for population and 8724.50 for
@@ -2163,20 +2176,58 @@ values of zero. This is most likely due to missing data.
 
 **Intercommunal population**
 
-```{r}
+```{r results='asis'}}
 library(ggplot2)
 library(scales) # For formatting axis labels
 
+
+# Filter out extreme value (Paris)
+filtered_no_paris_final_dataset <- final_dataset_cleaned %>%
+  filter(intercommunal_population_2021 < 550000) # Set your threshold
+
 # Histogram for intercommunal population with formatted x-axis
-ggplot(final_dataset_cleaned, aes(x = intercommunal_population_2021)) +
-  geom_histogram(binwidth = 1000, fill = "skyblue", color = "black") +
+ggplot(filtered_no_paris_final_dataset, aes(x = intercommunal_population_2021)) +
+  geom_histogram(binwidth = 500, fill = "skyblue", color = "black", alpha = 0.8) +
   labs(
-    title = "Distribution of Intercommunal Population (2021)",
+    title = "Distribution of Intercommunal Population (2021), without top 8",
     x = "Intercommunal Population",
     y = "Count"
   ) +
-  scale_x_continuous(labels = comma) + # Format x-axis labels as regular numbers
+  scale_x_continuous(labels = comma) + # Format x-axis labels as comma-separated numbers
   theme_minimal()
+
+top8_intercommunalities <- data.frame(
+  intercommunal_label = c(
+    "Métropole du Grand Paris",
+    "Métropole d'Aix–Marseille–Provence",
+    "Métropole de Lyon",
+    "Métropole Européenne de Lille",
+    "Bordeaux Métropole",
+    "Toulouse Métropole",
+    "Nantes Métropole",
+    "Métropole Nice Côte d'Azur"
+  ),
+  intercommunal_population_2021 = c(
+    7103801,
+    1911311,
+    1424069,
+    1187907,
+    831534,
+    818491,
+    677879,
+    560351
+  )
+)
+
+# Render the table in knitr
+print(knitr::kable(
+  top8_intercommunalities,
+  col.names = c("Intercommunal Label", "Population (2021)"),
+  format = "pipe",
+  caption = "Top Intercommunalities by Population (2021)"
+  )
+)
+
 ```
 
 ```{r}
@@ -2347,8 +2398,7 @@ ggplot(average_age_shares, aes(x = Age_Group, y = Average_Share, fill = Age_Grou
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-**Checking relationships between population density vs. public transport
-usage**
+**Checking relationships between population density vs. public transport usage**
 
 ```{r}
 ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_worker_public_transport)) +
@@ -2360,8 +2410,7 @@ ggplot(final_dataset_cleaned, aes(x = population_density_2021, y = share_worker_
 
 ### Last comments before analysis
 
-These intercommunautés have a median living standard of "0" due to
-missing valus and should be excluded when we conduct the analysis.
+These intercommunautés have a median living standard of "0" due to missing valus and should be excluded when we conduct the analysis.
 
 -   Communauté de communes de l'Ouest Guyanais (249730037)
 
@@ -2438,33 +2487,9 @@ include:
 -   Employment Data: Shares by professional categories like artisans,
     cadres, and ouvriers.
 
-In our analysis we will try to proceed with: Exploratory data analysis
-(EDA) with visualizations. Statistical tests to assess relationships.
-Modeling to predict commuting behavior based on these variables.
+In our analysis we will try to proceed with Exploratory data analysis
+(EDA), visualizations, and statistical tests to assess relationships.
 
-1.  Exploratory Data Analysis (EDA) Graphical Representations:
-
-    Use scatterplots, bar charts, and heatmaps to visually explore the
-    relationships between: Commuting mode shares (e.g., public
-    transport, car) and population density. Income levels and
-    transportation choices. Urban/rural classification and commuting
-    behavior. Distribution Analysis: Plot histograms or density plots
-    for key variables like income, population density, and commuting
-    distances.
-
-2.  Statistical Testing
-
-    Use chi-squared tests (chisq.test()) for dependencies between
-    categorical variables. For instance: Urban/rural classification vs.
-    preferred transportation mode. Socio-professional category vs. car
-    ownership.
-
-3.  Causal Analysis with Linear Models
-
-    Fit inear models (lm()) to explore potential causal relationships
-    Interpret coefficients to understand the impact of each variable.
-    Ensure confounding variables (e.g., age distribution, education
-    levels) are included to improve causal inference.
 
 ### Exploratory Data Analysis (EDA)
 
@@ -2492,6 +2517,8 @@ ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = car_truck_
   theme_minimal()
 
 ```
+
+As expected, share of workers using public transport is higher when population density is higher. This seems reasonable as denser areas are better equipped with public transport. On the other hand, the lower the density, the more people use their cars to comute.
 
 **Bar Plot: Income Levels vs. Transportation Choices**
 
@@ -2526,16 +2553,6 @@ melted_data <- final_dataset_cleaned2.0_2 %>%
   )
 
 # Bar plot
-ggplot(melted_data, aes(x = income_category, y = Share, fill = Transport_Mode)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(
-    title = "Transportation Choices by Income Category",
-    x = "Income Category",
-    y = "Average Share"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "right")
-
 
 ggplot(melted_data, aes(x = income_category, y = Share, fill = income_category)) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -2549,6 +2566,14 @@ ggplot(melted_data, aes(x = income_category, y = Share, fill = income_category))
   facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport_Mode
 
 ```
+
+These bar plots show the link between the median standard of living in an intercommunauté and mode of transport used to get to work. We notice the following:
+-   The two income categories that bike the most are low and high.
+-   For all categories, cars, trucks and vans are by far the most common modes of transport.
+-   Mothorized two-wheelers are particularly used in intercommunautés with mid-low median living standards.
+-   The higher the median standard of living in an intercommunauté, the lower the average share of people using "no transport".
+-   
+
 
 **Urban/Rural Classification vs. Commuting Behavior**
 
@@ -2573,7 +2598,7 @@ ggplot(final_dataset_cleaned2.0_3, aes(x = urban_rural, y = car_truck_van_share)
 
 **Correlation between public_transport_share**
 
-```{r}
+```{r include = FALSE}
 # Compute Pearson and Spearman correlations
 correlation_pearson <- cor(final_dataset_cleaned2.0$public_transport_share, final_dataset_cleaned2.0$nb_stops, use = "complete.obs", method = "pearson")
 correlation_spearman <- cor(final_dataset_cleaned2.0$public_transport_share, final_dataset_cleaned2.0$nb_stops, use = "complete.obs", method = "spearman")
@@ -2582,6 +2607,16 @@ correlation_spearman <- cor(final_dataset_cleaned2.0$public_transport_share, fin
 cat("Pearson Correlation: ", correlation_pearson, "\n")
 cat("Spearman Correlation: ", correlation_spearman, "\n")
 
+```
+
+Pearson Correlation: 0.3721486
+Spearman Correlation: 0.4710873
+
+The Spearman correlation is stronger than the Pearson correlation, which
+might indicate that the relationship is not strictly linear (fx.it could
+plateau at higher numbers of stops or be influenced by outliers).
+
+```{r}
 # Scatterplot to visualize the relationship
 library(ggplot2)
 
@@ -2596,15 +2631,14 @@ ggplot(final_dataset_cleaned2.0, aes(x = nb_stops, y = public_transport_share)) 
   theme_minimal()
 ```
 
-The Spearman correlation is stronger than the Pearson correlation, which
-might indicate that the relationship is not strictly linear (fx.it could
-plateau at higher numbers of stops or be influenced by outliers).
 
 ### Statistical Testing {#statistical-testing}
 
+Use chi-squared tests (chisq.test()) for dependencies between categorical variables. For instance: Urban/rural classification vs. preferred transportation mode. Socio-professional category vs. car ownership.
+
 **Urban/Rural Classification vs. Preferred Transportation Mode**
 
-```{r}
+```{r include = FALSE}
 # Create urban/rural classification
 final_dataset_cleaned2.0_5 <- final_dataset_cleaned2.0 %>%
   mutate(urban_rural = ifelse(population_density_2021 > 150, "Urban", "Rural"))
@@ -2643,15 +2677,24 @@ chisq_test_urban_transport
 
 ```
 
+Pearson's Chi-squared test
+
+data:  urban_transport_matrix
+X-squared = 2903.6, df = 5, p-value < 2.2e-16
+
 There is evidence of a significant association between the variables.
 
 **Socio-Professional Category vs. Car Ownership**
 
 TO DO
 
+
+
 # Discussion {#discussion}
 
--   Would also be interesting to perform a causal analysis
+-   Would also be interesting to perform a causal analysis. However, we cannot account for all confounding variables.
 
 -   Eventually try to measure the impact of remote working on commute
     behavior (compare pre and post covid data)
+    
+-   Modeling to predict commuting behavior based on these variables.
