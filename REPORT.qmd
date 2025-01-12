@@ -320,135 +320,284 @@ Hypothesis:
     rely on public transport.
 
 ### Age
-```{r}
-# Filter out "Not Applicable" and focus on 10-year age slices
-mob_pro_cleaned$age_group <- cut(
-  as.numeric(sub("(\\d+).*", "\\1", mob_pro_cleaned$age_five_year_slice)),
-  breaks = seq(15, 95, by = 10),
-  right = FALSE,
-  include.lowest = TRUE,
-  labels = paste(seq(15, 85, by = 10), seq(24, 94, by = 10), sep = "-")
-)
 
-# Remove rows with NA age groups and "Not Applicable" in main_transportation_work
-mob_pro_cleaned <- subset(mob_pro_cleaned, !is.na(age_group) & main_transportation_work != "Not Applicable")
+```{r}
+mob_age_aggregated <- mob_pro_cleaned %>%
+  mutate(
+    age_start = as.numeric(sub("-.*", "", age_five_year_slice)),
+    age_10_year_slice = case_when(
+      age_start >= 15 & age_start <= 24 ~ "15-24",
+      age_start >= 25 & age_start <= 34 ~ "25-34",
+      age_start >= 35 & age_start <= 44 ~ "35-44",
+      age_start >= 45 & age_start <= 54 ~ "45-54",
+      age_start >= 55 & age_start <= 64 ~ "55-64",
+      age_start >= 65 & age_start <= 74 ~ "65-74",
+      age_start >= 75 & age_start <= 84 ~ "75-84",
+      age_start >= 85 & age_start <= 95 ~ "85-95",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(age_10_year_slice), age_start < 65) %>%  # Exclude age groups 65 and above
+  group_by(age_10_year_slice, main_transportation_work) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  group_by(age_10_year_slice) %>%
+  mutate(share = count / sum(count)) %>%  # Calculate share for each transportation mode in the age group
+  ungroup()
+
+ggplot(mob_age_aggregated, aes(x = age_10_year_slice, y = share, fill = age_10_year_slice)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ main_transportation_work, scales = "free_y") +
+  scale_y_continuous(labels = scales::percent_format()) +  # Show percentages on y-axis
+  labs(title = "Share of Transportation Modes by Age Group (Below 65)", 
+       x = "Age Group", 
+       y = "Share of Transportation (%)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")  # Hide legend to reduce clutter
+
+```
+
+
+### Sex
+
+```{r}
+mob_gender <- mob_pro_cleaned %>%
+  group_by(sexe, main_transportation_work) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  group_by(main_transportation_work) %>%
+  mutate(share = count / sum(count)) %>%  # Calculate share for each gender within each transportation mode
+  ungroup()
+
+```
+```{r}
+ggplot(mob_gender, aes(x = sexe, y = share, fill = sexe)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ main_transportation_work, scales = "free_y") +
+  scale_y_continuous(labels = scales::percent_format()) +  # Show percentages on y-axis
+  scale_fill_manual(values = c("Male" = "#1f77b4", "Female" = "#ff7f0e")) +  # Set distinct colors for male and female
+  labs(title = "Share of Transportation Modes by Gender", 
+       x = "Gender", 
+       y = "Share of Transportation (%)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5),
+        legend.position = "bottom")  # Place legend at the bottom for clarity
+```
+### Educational attainment
+
+```{r}
+mob_education_aggregated <- mob_pro_cleaned %>%
+  mutate(
+    education_group = case_when(
+      highest_qualification %in% c("No schooling", "Primary or lower", "Secondary or higher", "CEP", "BEPC") ~ "Group 1",
+      highest_qualification %in% c("CAP/BEP", "General Bac", "Professional Bac") ~ "Group 2",
+      highest_qualification %in% c("BTS/DUT", "Bachelor") ~ "Group 3",
+      highest_qualification %in% c("Master", "Doctorate") ~ "Group 4",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(education_group)) %>%  # Exclude rows with missing education group
+  group_by(education_group, main_transportation_work) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  group_by(education_group) %>%
+  mutate(share = count / sum(count)) %>%  # Calculate share for each transportation mode in the education group
+  ungroup()
+
 ```
 
 ```{r}
+ggplot(mob_education_aggregated, aes(x = education_group, y = share, fill = education_group)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ main_transportation_work, scales = "free_y") +
+  scale_y_continuous(labels = scales::percent_format()) +  # Show percentages on y-axis
+  labs(title = "Share of Transportation Modes by Education Group", 
+       x = "Education Group", 
+       y = "Share of Transportation (%)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5),
+        legend.position = "bottom")  # Place legend at the bottom for clarity
 
-# Create the stacked bar plot
-ggplot(data = mob_pro_cleaned, aes(x = age_group, fill = main_transportation_work)) +
-  geom_bar(position = "stack") +
+```
+Group 1
+No schooling
+Primary or lower
+Secondary or higher
+CEP
+BEPC
+
+Group 2
+CAP/BEP
+General Bac
+Professional Bac
+
+Group 3
+BTS/DUT
+Bachelor
+
+Group 4
+Master
+Doctorate
+
+### Socio-professional category
+
+
+```{r}
+mob_socio_prof <- mob_pro_cleaned %>%
+  group_by(socio_professional_cat, main_transportation_work) %>%
+  summarize(count = n()) %>%
+  ungroup()
+
+```
+
+
+```{r}
+ggplot(mob_socio_prof, aes(x = socio_professional_cat, y = count, fill = main_transportation_work)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Transportation Mode by Socio-Professional Category", x = "Category", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+
+```{r}
+mob_socio_prof_aggregated <- mob_pro_cleaned %>%
+  mutate(
+    socio_professional_cat = case_when(
+      socio_professional_cat == "ouvriers" ~ "Workers",
+      socio_professional_cat == "employés" ~ "Employees",
+      socio_professional_cat == "professions intermediraies" ~ "Intermediate Professions",
+      socio_professional_cat == "cadres" ~ "Executives",
+      socio_professional_cat %in% c("artisans", "agriculteurs exploitants") ~ "Craftsmen and Farmers",
+      TRUE ~ socio_professional_cat
+    )
+  ) %>%
+  filter(socio_professional_cat %in% c("Workers", 
+                                       "Employees", 
+                                       "Intermediate Professions", 
+                                       "Executives", 
+                                       "Craftsmen and Farmers")) %>%
+  group_by(socio_professional_cat, main_transportation_work) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  group_by(socio_professional_cat) %>%
+  mutate(share = count / sum(count)) %>%  # Calculate share for each transportation mode in the category
+  ungroup()
+
+# Plot the updated data
+ggplot(mob_socio_prof_aggregated, aes(x = socio_professional_cat, y = share, fill = socio_professional_cat)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ main_transportation_work, scales = "free_y") +
+  scale_y_continuous(labels = scales::percent_format()) +  # Show percentages on y-axis
+  labs(title = "Share of Transportation Modes by Socio-Professional Category", 
+       x = "Socio-Professional Category", 
+       y = "Share of Transportation (%)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")  # Remove legend for clarity
+
+
+```
+
+
+
+
+TRY AAGAIN
+
+
+
+```{r}
+mob_socio_prof_aggregated <- mob_pro_cleaned %>%
+  mutate(
+    socio_professional_cat = case_when(
+      socio_professional_cat == "ouvriers" ~ "Workers",
+      socio_professional_cat == "employés" ~ "Employees",
+      socio_professional_cat == "professions intermediraies" ~ "Intermediate Professions",
+      socio_professional_cat == "cadres" ~ "Executives",
+      socio_professional_cat %in% c("artisans", "agriculteurs exploitants") ~ "Craftsmen and Farmers",
+      TRUE ~ NA_character_  # Assign NA to unrecognized categories
+    )
+  ) %>%
+  filter(!is.na(socio_professional_cat), !is.na(main_transportation_work))  # Exclude missing values
+
+```
+```{r}
+mob_socio_prof_aggregated <- mob_socio_prof_aggregated %>%
+  group_by(socio_professional_cat, main_transportation_work) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  group_by(socio_professional_cat) %>%
+  mutate(share = count / sum(count)) %>%  # Calculate the share of each transportation mode
+  ungroup()
+
+```
+```{r}
+print(nrow(mob_socio_prof_aggregated))  # Should be > 0
+print(unique(mob_socio_prof_aggregated$socio_professional_cat))  # Verify categories
+print(unique(mob_socio_prof_aggregated$main_transportation_work))  # Verify transportation modes
+
+```
+
+
+
+TRY AGAIN
+
+
+
+```{r}
+unique(mob_pro_cleaned$socio_professional_cat)
+
+```
+
+```{r}
+mob_pro_cleaned_socio <- mob_pro_cleaned %>%
+  mutate(socio_professional_cat = tolower(trimws(socio_professional_cat)))  # Lowercase and trim whitespace
+
+```
+
+```{r}
+mob_socio_prof_aggregated <- mob_pro_cleaned_socio %>%
+  mutate(
+    socio_professional_cat = case_when(
+      socio_professional_cat == "ouvriers" ~ "Workers",
+      socio_professional_cat == "employés" ~ "Employees",
+      socio_professional_cat == "Professions Intermédiaires" ~ "Intermediate Professions",
+      socio_professional_cat == "cadres" ~ "Executives",
+      socio_professional_cat %in% c("artisans", "agriculteurs exploitants") ~ "Craftsmen and Farmers",
+      TRUE ~ NA_character_  # Assign NA to unrecognized categories
+    )
+  ) %>%
+  filter(!is.na(socio_professional_cat), !is.na(main_transportation_work))  # Exclude missing values
+
+```
+```{r}
+print(unique(mob_socio_prof_aggregated$socio_professional_cat))  # Check translated categories
+print(nrow(mob_socio_prof_aggregated))  # Ensure the dataset has rows
+
+```
+```{r}
+mob_socio_prof_aggregated <- mob_socio_prof_aggregated %>%
+  group_by(socio_professional_cat, main_transportation_work) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  group_by(socio_professional_cat) %>%
+  mutate(share = count / sum(count)) %>%  # Calculate the share of each transportation mode
+  ungroup()
+
+ggplot(mob_socio_prof_aggregated, aes(x = socio_professional_cat, y = share, fill = socio_professional_cat)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ main_transportation_work, scales = "free_y") +
+  scale_y_continuous(labels = scales::percent_format()) +
   labs(
-    title = "Main Transportation to Work by Age Group (10-Year Slices)",
-    x = "Age Group",
-    y = "Count of Transportation Modes",
-    fill = "Mode of Transportation"
+    title = "Share of Transportation Modes by Socio-Professional Category",
+    x = "Socio-Professional Category",
+    y = "Share of Transportation (%)"
   ) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
-    plot.title = element_text(hjust = 0.5)
+    legend.position = "none"
   )
-```
-
-Doesn't allow for valuable analysis.
-
-### Gender
-
-```{r}
-# Create the faceted bar plot
-ggplot(data = mob_pro_cleaned, aes(x = sexe, fill = main_transportation_work)) +
-  geom_bar(position = "dodge") +
-  labs(
-    title = "Main Transportation to Work by Gender",
-    x = "Gender",
-    y = "Count of Transportation Modes",
-    fill = "Mode of Transportation"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5),
-    plot.title = element_text(hjust = 0.5)
-  ) +
-  facet_wrap(~ main_transportation_work, scales = "free_y")
 
 ```
 
-### Educational attainment
-
-```{r}
-# Melt the data for transportation modes grouped by broad educational attainment
-melted_data_broad_education <- new_dataset %>%
-  select(
-    no_schooling_value,
-    primary_or_lower_value,
-    secondary_or_higher_value,
-    cep_value,
-    bepc_value,
-    cap_bep_value,
-    general_bac_value,
-    professional_bac_value,
-    bts_dut_value,
-    bachelor_value,
-    master_value,
-    doctorate_value,
-    no_transport_value,
-    on_foot_value,
-    bicycle_value,
-    motorized_two_wheelers_value,
-    car_truck_van_value,
-    public_transport_value
-  ) %>%
-  pivot_longer(
-    cols = c(no_schooling_value, primary_or_lower_value, secondary_or_higher_value,
-             cep_value, bepc_value, cap_bep_value, general_bac_value, 
-             professional_bac_value, bts_dut_value, bachelor_value, 
-             master_value, doctorate_value),
-    names_to = "Education_Level",
-    values_to = "Education_Value"
-  ) %>%
-  pivot_longer(
-    cols = c(no_transport_value, on_foot_value, bicycle_value, 
-             motorized_two_wheelers_value, car_truck_van_value, 
-             public_transport_value),
-    names_to = "Transport_Mode",
-    values_to = "Transport_Value"
-  ) %>%
-  mutate(
-    Broad_Education_Level = case_when(
-      Education_Level %in% c("no_schooling_value", "primary_or_lower_value", "secondary_or_higher_value") ~ "Group 1: No Schooling to Secondary",
-      Education_Level %in% c("cep_value", "bepc_value", "cap_bep_value", "general_bac_value", "professional_bac_value") ~ "Group 2: CEP to Bac",
-      Education_Level %in% c("bts_dut_value", "bachelor_value") ~ "Group 3: BTS/DUT to Bachelor",
-      Education_Level %in% c("master_value", "doctorate_value") ~ "Group 4: Master to Doctorate",
-      TRUE ~ NA_character_
-    )
-  ) %>%
-  filter(!is.na(Broad_Education_Level)) # Remove NA Broad_Education_Level values
-
-# Summarize transportation choices by broad educational attainment
-summary_data_broad_education <- melted_data_broad_education %>%
-  group_by(Broad_Education_Level, Transport_Mode) %>%
-  summarise(Average_Value = mean(Transport_Value, na.rm = TRUE), .groups = "drop")
-
-# Create the faceted bar plot
-ggplot(summary_data_broad_education, aes(x = Broad_Education_Level, y = Average_Value, fill = Broad_Education_Level)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(
-    title = "Transportation Choices by Broad Educational Attainment",
-    x = "Broad Educational Attainment",
-    y = "Average Value"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for clarity
-    legend.position = "none" # Remove legend as Broad_Education_Level is on x-axis
-  ) +
-  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
-
-```
-
-### Socio-professional category
 
 ## Income levels
 
@@ -624,6 +773,23 @@ ggplot(data = mob_pro_cleaned, aes(x = workplace_indicator, fill = main_transpor
     plot.title = element_text(hjust = 0.5)
   ) +
   facet_wrap(~ main_transportation_work, scales = "free_y")
+```
+
+
+```{r}
+mob_workplace <- mob_pro_cleaned %>%
+  group_by(workplace_indicator, main_transportation_work) %>%
+  summarize(count = n()) %>%
+  ungroup()
+
+```
+
+```{r}
+ggplot(mob_workplace, aes(x = workplace_indicator, y = count, fill = main_transportation_work)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Transportation Mode by Workplace Indicator", x = "Workplace Location", y = "Count") +
+  theme_minimal()
+
 ```
 
 
