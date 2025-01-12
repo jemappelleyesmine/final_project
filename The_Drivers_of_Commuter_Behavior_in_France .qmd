@@ -2499,6 +2499,7 @@ In our analysis we will try to proceed with Exploratory data analysis
 # Scatterplot for Public Transport Share vs. Population Density
 ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = public_transport_share)) +
   geom_point() +
+    geom_smooth(method = "lm", color = "blue", se = FALSE) +
   labs(
     title = "Public Transport Share vs. Population Density",
     x = "Population Density (2021)",

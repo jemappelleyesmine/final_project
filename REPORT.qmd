@@ -112,6 +112,7 @@ foundation for our exploration of commuting behavior in France.
 
 ```{r}
 library(vroom)
+library(tidyverse)
 library(here)
 here::i_am("Final_Project_Commuter_behavior.Rproj")
 
@@ -222,8 +223,6 @@ summary_table <- do.call(rbind, lapply(names(datasets), function(name) {
 
  # Print a heading and the table in LaTeX format
 print(knitr::kable(summary_table, format = "pipe"))
-
-  
 ```
 
 # Data Analysis
@@ -232,6 +231,70 @@ The data analysis aims to uncover patterns in commuting behavior across
 France by exploring socio-demographic, economic, geographic, and
 infrastructural variables. By systematically examining these factors, we
 seek to identify trends and relationships that shape commuting choices.
+
+Before seeing visually how these factors relate to commuting behavior, let's try to find a model that is appropriate to explain commuting behavior. Here we use the average French intercommunauté.
+
+```{r}
+model_average = lm(formula = public_transport_share ~ population_density_2021 + 
+     share_household_car + median_living_standard_2021 + female_share + 
+     employes_share + cap_bep_share + other_commune_same_dept_share + 
+     age_45_54_share, data = final_dataset_cleaned2.0)
+summary(model_average)
+```
+This models seems to poorly reflect what's going on. Let's see if that has something to do with the fact that our dataset shows everything in shares.
+```{r}
+
+# Identify columns to exclude and the multiplier column
+columns_to_exclude <- c("code_epci", "intercommunal_label", "population_density_2021", "intercommunal_population_2021", "nb_stops", "median_living_standard_2021")
+multiplier_column <- "intercommunal_population_2021"
+
+# Create a new dataset where selected columns are multiplied
+new_dataset <- final_dataset_cleaned2.0
+columns_to_transform <- setdiff(names(final_dataset_cleaned2.0), c(columns_to_exclude, multiplier_column))
+
+# Apply the transformation
+new_dataset[columns_to_transform] <- lapply(columns_to_transform, function(col) {
+  final_dataset_cleaned2.0[[col]] / 100 * final_dataset_cleaned2.0[[multiplier_column]]
+})
+names(new_dataset) <- gsub("share", "value", names(new_dataset))
+
+# Choosing appropriate types
+new_dataset <- new_dataset %>%
+  mutate(
+    # Convert to factors
+    intercommunal_label = as.factor(intercommunal_label),
+    
+    # Ensure ID columns remain as integers
+    code_epci = as.integer(code_epci),
+    
+    # Continuous numeric columns (already numeric, ensuring they stay so)
+    across(c(intercommunal_population_2021, population_density_2021, 
+             nb_stops, value_household_car, median_living_standard_2021), as.numeric),
+    
+    # Ensure proportion/percentage columns are numeric
+    across(matches("_value$"), as.numeric)
+  )
+
+write.csv(new_dataset, "new_dataset.csv", row.names = FALSE)
+
+```
+
+```{r}
+#apply model again avergae French
+model_average2_pt = lm(formula = public_transport_value ~ population_density_2021 + 
+     value_household_car + median_living_standard_2021 + female_value + 
+     employes_value + cap_bep_value + other_commune_same_dept_value + 
+     age_45_54_value, data = new_dataset)
+summary(model_average2_pt)
+```
+```{r}
+#apply model on car_truck_van
+model_average2_car = lm(formula = car_truck_van_value ~ population_density_2021 + 
+     public_transport_value + median_living_standard_2021 + female_value + 
+     employes_value + cap_bep_value + other_commune_same_dept_value + 
+     age_45_54_value, data = new_dataset)
+summary(model_average2_car)
+```
 
 ## Socio-demographic factors
 
@@ -254,10 +317,195 @@ Hypothesis:
     rely on public transport.
 
 ### Age
+```{r}
+# Combine age groups into 4 broader categories
+melted_data <- new_dataset %>%
+  select(
+    age_15_24_value,
+    age_25_34_value,
+    age_35_44_value,
+    age_45_54_value,
+    age_55_64_value,
+    age_65_74_value,
+    age_75_84_value,
+    age_85_94_value,
+    no_transport_value,
+    on_foot_value,
+    bicycle_value,
+    motorized_two_wheelers_value,
+    car_truck_van_value,
+    public_transport_value
+  ) %>%
+  pivot_longer(
+    cols = starts_with("age_"),
+    names_to = "Age_Group",
+    values_to = "Age_Value"
+  ) %>%
+  mutate(
+    Age_Group = case_when(
+      Age_Group %in% c("age_15_24_value", "age_25_34_value") ~ "15-34",
+      Age_Group %in% c("age_35_44_value", "age_45_54_value") ~ "35-54",
+      Age_Group %in% c("age_55_64_value", "age_65_74_value") ~ "55-74",
+      Age_Group %in% c("age_75_84_value", "age_85_94_value") ~ "75-94",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(Age_Group)) %>% # Remove NA Age_Group values
+  pivot_longer(
+    cols = c(no_transport_value, on_foot_value, bicycle_value, 
+             motorized_two_wheelers_value, car_truck_van_value, 
+             public_transport_value),
+    names_to = "Transport_Mode",
+    values_to = "Transport_Value"
+  )
+
+# Summarize transportation choices by broader age groups
+summary_data <- melted_data %>%
+  group_by(Age_Group, Transport_Mode) %>%
+  summarise(Average_Value = mean(Transport_Value, na.rm = TRUE), .groups = "drop")
+
+# Create the faceted bar plot
+ggplot(summary_data, aes(x = Age_Group, y = Average_Value, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Transportation Choices by Broad Age Groups",
+    x = "Broad Age Group",
+    y = "Average Value"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none") + # Remove legend as Age Group is on x-axis
+  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
+```
+
+Doesn't allow for valuable analysis.
 
 ### Gender
 
+```{r}
+# Melt the data for transportation modes grouped by gender
+melted_data_gender <- new_dataset %>%
+  select(
+    male_value,
+    female_value,
+    no_transport_value,
+    on_foot_value,
+    bicycle_value,
+    motorized_two_wheelers_value,
+    car_truck_van_value,
+    public_transport_value
+  ) %>%
+  pivot_longer(
+    cols = c(male_value, female_value),
+    names_to = "Gender",
+    values_to = "Gender_Value"
+  ) %>%
+  pivot_longer(
+    cols = c(no_transport_value, on_foot_value, bicycle_value, 
+             motorized_two_wheelers_value, car_truck_van_value, 
+             public_transport_value),
+    names_to = "Transport_Mode",
+    values_to = "Transport_Value"
+  ) %>%
+  mutate(
+    Gender = case_when(
+      Gender == "male_value" ~ "Male",
+      Gender == "female_value" ~ "Female",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(Gender)) # Remove NA Gender values
+
+# Summarize transportation choices by gender
+summary_data_gender <- melted_data_gender %>%
+  group_by(Gender, Transport_Mode) %>%
+  summarise(Average_Value = mean(Transport_Value, na.rm = TRUE), .groups = "drop")
+
+# Create the faceted bar plot
+ggplot(summary_data_gender, aes(x = Gender, y = Average_Value, fill = Gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Transportation Choices by Gender",
+    x = "Gender",
+    y = "Average Value"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none") + # Remove legend as Gender is on x-axis
+  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
+
+```
+
 ### Educational attainment
+
+```{r}
+# Melt the data for transportation modes grouped by broad educational attainment
+melted_data_broad_education <- new_dataset %>%
+  select(
+    no_schooling_value,
+    primary_or_lower_value,
+    secondary_or_higher_value,
+    cep_value,
+    bepc_value,
+    cap_bep_value,
+    general_bac_value,
+    professional_bac_value,
+    bts_dut_value,
+    bachelor_value,
+    master_value,
+    doctorate_value,
+    no_transport_value,
+    on_foot_value,
+    bicycle_value,
+    motorized_two_wheelers_value,
+    car_truck_van_value,
+    public_transport_value
+  ) %>%
+  pivot_longer(
+    cols = c(no_schooling_value, primary_or_lower_value, secondary_or_higher_value,
+             cep_value, bepc_value, cap_bep_value, general_bac_value, 
+             professional_bac_value, bts_dut_value, bachelor_value, 
+             master_value, doctorate_value),
+    names_to = "Education_Level",
+    values_to = "Education_Value"
+  ) %>%
+  pivot_longer(
+    cols = c(no_transport_value, on_foot_value, bicycle_value, 
+             motorized_two_wheelers_value, car_truck_van_value, 
+             public_transport_value),
+    names_to = "Transport_Mode",
+    values_to = "Transport_Value"
+  ) %>%
+  mutate(
+    Broad_Education_Level = case_when(
+      Education_Level %in% c("no_schooling_value", "primary_or_lower_value", "secondary_or_higher_value") ~ "Group 1: No Schooling to Secondary",
+      Education_Level %in% c("cep_value", "bepc_value", "cap_bep_value", "general_bac_value", "professional_bac_value") ~ "Group 2: CEP to Bac",
+      Education_Level %in% c("bts_dut_value", "bachelor_value") ~ "Group 3: BTS/DUT to Bachelor",
+      Education_Level %in% c("master_value", "doctorate_value") ~ "Group 4: Master to Doctorate",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(Broad_Education_Level)) # Remove NA Broad_Education_Level values
+
+# Summarize transportation choices by broad educational attainment
+summary_data_broad_education <- melted_data_broad_education %>%
+  group_by(Broad_Education_Level, Transport_Mode) %>%
+  summarise(Average_Value = mean(Transport_Value, na.rm = TRUE), .groups = "drop")
+
+# Create the faceted bar plot
+ggplot(summary_data_broad_education, aes(x = Broad_Education_Level, y = Average_Value, fill = Broad_Education_Level)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Transportation Choices by Broad Educational Attainment",
+    x = "Broad Educational Attainment",
+    y = "Average Value"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for clarity
+    legend.position = "none" # Remove legend as Broad_Education_Level is on x-axis
+  ) +
+  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
+
+```
 
 ### Socio-professional category
 
@@ -272,6 +520,51 @@ Hypothesis:
 
 -   Lower-income individuals may prefer public transport or walking due
     to affordability constraints.
+    
+```{r}
+# Create income categories
+final_dataset_cleaned2.0_2 <- final_dataset_cleaned2.0 %>%
+  mutate(income_category = cut(
+    median_living_standard_2021,
+    breaks = quantile(median_living_standard_2021, probs = seq(0, 1, by = 0.25), na.rm = TRUE),
+    labels = c("Low", "Mid-Low", "Mid-High", "High"),
+    include.lowest = TRUE
+  ))
+
+
+# Melt the data for transportation modes
+melted_data <- final_dataset_cleaned2.0_2 %>%
+  select(
+    income_category,
+    no_transport_share,
+    on_foot_share,
+    bicycle_share,
+    motorized_two_wheelers_share,
+    car_truck_van_share,
+    public_transport_share
+  ) %>%
+  pivot_longer(
+    cols = c(no_transport_share, on_foot_share, bicycle_share, 
+             motorized_two_wheelers_share, car_truck_van_share, 
+             public_transport_share),
+    names_to = "Transport_Mode",
+    values_to = "Share"
+  )
+
+# Bar plot
+
+ggplot(melted_data, aes(x = income_category, y = Share, fill = income_category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Transportation Choices by Income Category",
+    x = "Income Category",
+    y = "Average Share"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none") + # Remove legend since it's redundant with facets
+  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport_Mode
+
+```
 
 ## Infrastructures and urban/rural areas
 
@@ -298,7 +591,67 @@ accessibility and practicality of transport modes.
 
 ### Infrastructures
 
+```{r}
+# Scatterplot to visualize the relationship
+library(ggplot2)
+
+ggplot(final_dataset_cleaned2.0, aes(x = nb_stops, y = public_transport_share)) +
+  geom_point(color = "blue", alpha = 0.6) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(
+    title = "Relationship Between Public Transport Share and Number of Stops",
+    x = "Number of Stops",
+    y = "Public Transport Share"
+  ) +
+  theme_minimal()
+```
+
+
 ### Uban/rural areas
+
+The threshold of 150 inhabitants per square kilometer comes from Insee's
+official definition of urban units, which are used to differentiate
+between urban and rural areas in France.
+
+```{r}
+final_dataset_cleaned2.0_3 <- final_dataset_cleaned2.0 %>%
+  mutate(urban_rural = ifelse(population_density_2021 > 150, "Urban", "Rural"))
+
+# Boxplot for Urban/Rural vs. Car Share for Work
+ggplot(final_dataset_cleaned2.0_3, aes(x = urban_rural, y = car_truck_van_share)) +
+  geom_boxplot() +
+  labs(
+    title = "Car Share for Work by Urban/Rural Classification",
+    x = "Urban/Rural",
+    y = "Car Share for Work"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+# Scatterplot for Public Transport Share vs. Population Density
+ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = public_transport_share)) +
+  geom_point() +
+    geom_smooth(method = "lm", color = "blue", se = FALSE) +
+  labs(
+    title = "Public Transport Share vs. Population Density",
+    x = "Population Density (2021)",
+    y = "Public Transport Share"
+  ) +
+  theme_minimal()
+
+# Scatterplot for Car Share vs. Population Density
+ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = car_truck_van_share)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "blue", se = FALSE) +
+  labs(
+    title = "Car Share vs. Population Density",
+    x = "Population Density (2021)",
+    y = "Car Share for Work"
+  ) +
+  theme_minimal()
+```
+
 
 ## Commuting distances
 
@@ -314,6 +667,81 @@ Commuting distances determine the feasibility of transport modes.
 -   Very long commutes may encourage reliance on private cars or trains,
     depending on infrastructure availability.
 
+```{r}
+# Melt the data for commuting distances
+melted_data_distance <- final_dataset_cleaned2.0 %>%
+  select(
+    within_residence_commune_share,
+    other_commune_same_dept_share,
+    other_dept_same_region_share,
+    outside_region_metropole_share,
+    outside_region_dom_share,
+    outside_region_com_share,
+    abroad_share,
+    no_transport_share,
+    on_foot_share,
+    bicycle_share,
+    motorized_two_wheelers_share,
+    car_truck_van_share,
+    public_transport_share
+  ) %>%
+  pivot_longer(
+    cols = c(
+      within_residence_commune_share,
+      other_commune_same_dept_share,
+      other_dept_same_region_share,
+      outside_region_metropole_share,
+      outside_region_dom_share,
+      outside_region_com_share,
+      abroad_share
+    ),
+    names_to = "Commuting_Distance",
+    values_to = "Distance_Share"
+  ) %>%
+  pivot_longer(
+    cols = c(no_transport_share, on_foot_share, bicycle_share, 
+             motorized_two_wheelers_share, car_truck_van_share, 
+             public_transport_share),
+    names_to = "Transport_Mode",
+    values_to = "Transport_Share"
+  ) %>%
+  mutate(
+    Commuting_Distance = case_when(
+      Commuting_Distance == "within_residence_commune_share" ~ "Within Residence Commune",
+      Commuting_Distance == "other_commune_same_dept_share" ~ "Other Commune Same Dept",
+      Commuting_Distance == "other_dept_same_region_share" ~ "Other Dept Same Region",
+      Commuting_Distance == "outside_region_metropole_share" ~ "Outside Region Metropole",
+      Commuting_Distance == "outside_region_dom_share" ~ "Outside Region DOM",
+      Commuting_Distance == "outside_region_com_share" ~ "Outside Region COM",
+      Commuting_Distance == "abroad_share" ~ "Abroad",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(Commuting_Distance)) # Remove rows with NA categories
+
+# Summarize transportation choices by commuting distances
+summary_data_distance <- melted_data_distance %>%
+  group_by(Commuting_Distance, Transport_Mode) %>%
+  summarise(Average_Share = mean(Transport_Share, na.rm = TRUE), .groups = "drop")
+
+# Create the faceted bar plot
+ggplot(summary_data_distance, aes(x = Commuting_Distance, y = Average_Share, fill = Commuting_Distance)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Transportation Choices by Commuting Distance Categories",
+    x = "Commuting Distance Category",
+    y = "Average Share"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for clarity
+    legend.position = "none" # Remove legend as categories are on x-axis
+  ) +
+  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
+
+```
+
+
 ## Car ownership
 
 share of houselholds owning a car
@@ -328,38 +756,64 @@ vehicles for commuting.
 -   Households without cars are more likely to depend on public
     transport, walking, or cycling for their commuting needs.
     
+```{r}
+# Exclude cases where share_household_car = 0
+filtered_data_car <- final_dataset_cleaned2.0 %>%
+  filter(share_household_car != 0)
+
+# Create quantile-based categories for share_household_car
+filtered_data_car <- filtered_data_car %>%
+  mutate(
+    share_household_car_category = cut(
+      share_household_car,
+      breaks = quantile(share_household_car, probs = seq(0, 1, by = 0.25), na.rm = TRUE),
+      labels = c("Low Share", "Mid-Low Share", "Mid-High Share", "High Share"),
+      include.lowest = TRUE
+    )
+  )
+
+# Melt the data for transportation modes grouped by share_household_car categories
+melted_data_car_share <- filtered_data_car %>%
+  select(
+    share_household_car_category,
+    no_transport_share,
+    on_foot_share,
+    bicycle_share,
+    motorized_two_wheelers_share,
+    car_truck_van_share,
+    public_transport_share
+  ) %>%
+  pivot_longer(
+    cols = c(no_transport_share, on_foot_share, bicycle_share, 
+             motorized_two_wheelers_share, car_truck_van_share, 
+             public_transport_share),
+    names_to = "Transport_Mode",
+    values_to = "Transport_Value"
+  )
+
+# Summarize transportation choices by share_household_car categories
+summary_data_car_share <- melted_data_car_share %>%
+  group_by(share_household_car_category, Transport_Mode) %>%
+  summarise(Average_Value = mean(Transport_Value, na.rm = TRUE), .groups = "drop")
+
+# Create the faceted bar plot
+ggplot(summary_data_car_share, aes(x = share_household_car_category, y = Average_Value, fill = share_household_car_category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Transportation Choices by Share of Household Cars",
+    x = "Household Car Share Category",
+    y = "Average Value"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for clarity
+    legend.position = "none" # Remove legend as categories are on x-axis
+  ) +
+  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
+
+```
+
     
-Now that we have seen visually how these factors relate to commuting behavior, let's try to find a model that is appropriate to explain commuting behavior. Here we use the average French intercommunauté.
-
-```{r}
-model_average = lm(formula = public_transport_share ~ population_density_2021 + 
-     share_household_car + median_living_standard_2021 + female_share + 
-     employes_share + cap_bep_share + other_commune_same_dept_share + 
-     age_45_54_share, data = data)
-summary(model_average)
-```
-This models seems to poorly reflect what's going on. Let's see if that has something to do with the fact that our dataset shows everything in shares.
-
-```{r}
-
-# Identify columns to exclude and the multiplier column
-columns_to_exclude <- c("code_epci", "intercommunal_label")
-multiplier_column <- "intercommunal_population_2021"
-
-# Create a new dataset where selected columns are multiplied
-new_dataset <- final_dataset_cleaned2.0
-columns_to_transform <- setdiff(names(final_dataset_cleaned2.0), c(columns_to_exclude, multiplier_column))
-
-# Apply the transformation
-new_dataset[columns_to_transform] <- lapply(columns_to_transform, function(col) {
-  final_dataset_cleaned2.0[[col]] * final_dataset_cleaned2.0[[multiplier_column]]
-})
-
-```
-
-
-
-
 # Discussion
 
 -   Mention that some factors probably matter more than others. - use
