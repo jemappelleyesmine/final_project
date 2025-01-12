@@ -123,7 +123,6 @@ associated variables that we have thought of:
 -   **Infrastructures and urban/rural areas**: proximity to transport
     infrastructure and population density
 -   **Commuting distances**: commuting destinations
--   **Car ownership**: share of houselholds owning a car
 
 Our project involves several steps: firstly, we collect, store, and
 organize datasets in a GitHub repository. Since datasets are aggregated
@@ -764,17 +763,25 @@ using "levels" for improved readability.*
 
 # Discussion
 
--   Mention that some factors probably matter more than others. - use
-    qui 2 test?
--   Would also be interesting to perform a causal analysis. However, we
-    cannot account for all confounding variables.
--   Modeling to predict commuting behavior based on these variables.
--   Eventually try to measure the impact of remote working on commute
-    behavior (compare pre and post covid data)
-
-https://hbr.org/2019/12/why-its-so-hard-to-change-peoples-commuting-behavior
+## Summary of data analysis
+Our analysis revealed several findings regarding commuting behavior in France. From the regression models, population density emerged as a significant determinant of transportation choices, with higher densities strongly correlating with increased public transport usage and reduced car dependency. Income levels also played a role, as lower-income groups showed a higher reliance on public transport and active modes like walking, while higher-income groups favored private vehicles. Additionally, gender differences were shown, with men using motorized two-wheelers more frequently and women relying slightly more on public transport. Education levels were linked to sustainable transportation choices, with higher-educated individuals showing greater shares of public transport and bicycle usage. The analysis of commuting distances also showed the practicality of certain transport modes, with public transport usage increasing for longer commutes and active modes like walking or cycling being dominant for shorter distances. 
+These findings show the links among socio-demographic, economic, geographic factors, as well as commuting behaviors. While our study focuses on correlations rather than causations, it tries to identify significant trends that could inform or guide future research.
+## The influence of our variables
+Different factors likely play varying roles in influencing commuting behavior. For instance, population density and access to public transport infrastructure are expected to be more impactful than individual-level variables like education. To better understand the relative importance of these factors, we could apply a chi-squared (χ²) test to examine the independence and association of categorical variables (e.g., socio-professional category and transport modes).
+However, we do recognize that the associations observed in this study cannot account for confounding variables, such as individual preferences, workplace policies, or social norms. A causal analysis would require further access to public data and a rigorous regression analysis.
+## Modelling commuting behavior
+Using regression models, we explored how variables like population density, income levels, and public transport availability shape commuting choices. These models provide insights into how certain factors—like proximity to transport stops or urbanization—relate to increased public transport use, while others, such as higher income, correlate with reliance on private vehicles.
+Modelling could be expanded to predict commuting behavior based on these variables, and could maybe be applied to policymaking, by simulating the impact of interventions like expanding public transport networks or incentivizing active modes of commuting (e.g., walking or cycling).
+## The role of remote working
+The COVID-19 pandemic brought large changes to commuting patterns, with remote working reducing overall commute volumes and altering transportation mode shares. It would be interesting to extend our research by comparing pre- and post-COVID commuting data to measure the long-term impact of remote working on commute behavior. This could reveal shifts in preferences and highlight the potential for permanent changes in urban mobility.
+## Possible future directions
+While our analysis identifies trends and relationships, our study has several limitations, such as the inability to infer causation and the potential for unmeasured confounding variables. Integrating additional data sources, such as workplace policies or real-time transport usage, could improve the robustness of our findings.
+By better modeling commuting behavior and accounting for changes like remote work, we could better understand how to design policies that effectively promote sustainable and equitable transportation systems.
 
 # Conclusion
+In the Harvard Business Review article "Why It’s So Hard to Change People’s Commuting Behavior" by Ariella Kristal and Ashley Whillans, the authors emphasize how entrenched commuting habits are and the difficulty in shifting them, even when presented with sustainable or convenient alternatives. This underscores the significance of understanding the factors that drive commuting choices, as any meaningful change requires addressing deeply ingrained behaviors, environmental constraints, and individual preferences.
+Our analysis highlighted patterns of commuting behavior, such as the link between population density and transportation choices. Income and education levels also emerged as influential in our findings. Moreover, gender and commuting distances revealed further differences.
+While our study identified meaningful correlations, it emphasized the complexity of commuting behavior and the need for further research to account for causal relationships and confounding variables. Future work could explore the long-term impacts of remote working, policy interventions, and urban planning on commuting patterns. 
 
 # Sources
 
