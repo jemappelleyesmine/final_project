@@ -19,6 +19,50 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r}
+library(vroom)
+library(here)
+library(dplyr)
+here::i_am("Final_Project_Commuter_behavior.Rproj")
+final_dataset_cleaned2.0 <- vroom(here("final_dataset_cleaned2.0.csv"))
+mob_pro_cleaned <- vroom(here("mob_pro_cleaned.csv"))
+```
+
+```{r}
+# Identify columns to exclude and the multiplier column
+columns_to_exclude <- c("code_epci", "intercommunal_label", "population_density_2021", "intercommunal_population_2021", "nb_stops", "median_living_standard_2021")
+multiplier_column <- "intercommunal_population_2021"
+
+# Create a new dataset where selected columns are multiplied
+new_dataset <- final_dataset_cleaned2.0
+columns_to_transform <- setdiff(names(final_dataset_cleaned2.0), c(columns_to_exclude, multiplier_column))
+
+# Apply the transformation
+new_dataset[columns_to_transform] <- lapply(columns_to_transform, function(col) {
+  final_dataset_cleaned2.0[[col]] / 100 * final_dataset_cleaned2.0[[multiplier_column]]
+})
+names(new_dataset) <- gsub("share", "value", names(new_dataset))
+
+# Choosing appropriate types
+new_dataset <- new_dataset %>%
+  mutate(
+    # Convert to factors
+    intercommunal_label = as.factor(intercommunal_label),
+    
+    # Ensure ID columns remain as integers
+    code_epci = as.integer(code_epci),
+    
+    # Continuous numeric columns (already numeric, ensuring they stay so)
+    across(c(intercommunal_population_2021, population_density_2021, 
+             nb_stops, value_household_car, median_living_standard_2021), as.numeric),
+    
+    # Ensure proportion/percentage columns are numeric
+    across(matches("_value$"), as.numeric)
+  )
+
+write.csv(new_dataset, "new_dataset.csv", row.names = FALSE)
+```
+
 [Link to the github
 project](https://github.com/jemappelleyesmine/final_project)
 
@@ -230,101 +274,33 @@ print(knitr::kable(summary_table, format = "pipe"))
 
 # Data Analysis
 
-The data analysis aims to uncover patterns in commuting behavior across
-France by exploring socio-demographic, economic, geographic, and
-infrastructural variables. By systematically examining these factors, we
-seek to identify trends and relationships that shape commuting choices.
-
-Before seeing visually how these factors relate to commuting behavior, let's try to find a model that is appropriate to explain commuting behavior. Here we use the average French intercommunauté.
-
-```{r}
-library(vroom)
-library(here)
-here::i_am("Final_Project_Commuter_behavior.Rproj")
-final_dataset_cleaned2.0 <- vroom(here("final_dataset_cleaned2.0.csv"))
-mob_pro_cleaned <- vroom(here("mob_pro_cleaned.csv"))
-
-
-model_average = lm(formula = public_transport_share ~ population_density_2021 + 
-     share_household_car + median_living_standard_2021 + female_share + 
-     employes_share + cap_bep_share + other_commune_same_dept_share + 
-     age_45_54_share, data = final_dataset_cleaned2.0)
-summary(model_average)
-```
-This models seems to poorly reflect what's going on. Let's see if that has something to do with the fact that our dataset shows everything in shares.
-```{r}
-
-# Identify columns to exclude and the multiplier column
-columns_to_exclude <- c("code_epci", "intercommunal_label", "population_density_2021", "intercommunal_population_2021", "nb_stops", "median_living_standard_2021")
-multiplier_column <- "intercommunal_population_2021"
-
-# Create a new dataset where selected columns are multiplied
-new_dataset <- final_dataset_cleaned2.0
-columns_to_transform <- setdiff(names(final_dataset_cleaned2.0), c(columns_to_exclude, multiplier_column))
-
-# Apply the transformation
-new_dataset[columns_to_transform] <- lapply(columns_to_transform, function(col) {
-  final_dataset_cleaned2.0[[col]] / 100 * final_dataset_cleaned2.0[[multiplier_column]]
-})
-names(new_dataset) <- gsub("share", "value", names(new_dataset))
-
-# Choosing appropriate types
-new_dataset <- new_dataset %>%
-  mutate(
-    # Convert to factors
-    intercommunal_label = as.factor(intercommunal_label),
-    
-    # Ensure ID columns remain as integers
-    code_epci = as.integer(code_epci),
-    
-    # Continuous numeric columns (already numeric, ensuring they stay so)
-    across(c(intercommunal_population_2021, population_density_2021, 
-             nb_stops, value_household_car, median_living_standard_2021), as.numeric),
-    
-    # Ensure proportion/percentage columns are numeric
-    across(matches("_value$"), as.numeric)
-  )
-
-write.csv(new_dataset, "new_dataset.csv", row.names = FALSE)
-
-```
-
-```{r}
-#apply model again avergae French
-model_average2_pt = lm(formula = public_transport_value ~ population_density_2021 + 
-     value_household_car + median_living_standard_2021 + female_value + 
-     employes_value + cap_bep_value + other_commune_same_dept_value + 
-     age_45_54_value, data = new_dataset)
-summary(model_average2_pt)
-```
-```{r}
-#apply model on car_truck_van
-model_average2_car = lm(formula = car_truck_van_value ~ population_density_2021 + 
-     public_transport_value + median_living_standard_2021 + female_value + 
-     employes_value + cap_bep_value + other_commune_same_dept_value + 
-     age_45_54_value, data = new_dataset)
-summary(model_average2_car)
-```
+With these datasets, we now aims to uncover patterns in commuting
+behavior across France by exploring socio-demographic, economic,
+geographic, and infrastructural variables. By systematically examining
+these factors, we seek to identify trends and relationships that shape
+commuting choices.
 
 ## Socio-demographic factors
 
-Hypothesis:
-
--   Younger individuals are more likely to use active modes of transport
-    (e.g., cycling, walking) or public transport, while older
-    individuals may prefer private vehicles.
-
--   Men may have a higher likelihood of using private vehicles or
-    motorized two-wheelers, whereas women may rely more on public
-    transport.
-
--   Higher educational attainment correlates with increased use of
-    sustainable transport modes due to environmental awareness.
-
--   Socio-professional categories determine affordability and
-    accessibility: higher-income professionals may prefer private
-    vehicles, while workers in intermediate or lower categories might
-    rely on public transport.
+Socio-demographic factors play a critical role in shaping commuting
+behavior, and our hypotheses aim to explore how these factors influence
+transport choices. These hypotheses, which align with common assumptions
+in the field, suggest that younger individuals are more likely to use
+active transport modes, such as cycling or walking, or rely on public
+transport, while older populations may prefer private vehicles.
+Similarly, men are hypothesized to have a higher likelihood of using
+private vehicles or motorized two-wheelers, whereas women are expected
+to rely more on public transport. We also posit that individuals with
+higher educational attainment are more likely to choose sustainable
+transport options, potentially due to greater environmental awareness or
+because they tend to live in bigger cities, in which these modes of
+transport are more common. Finally, socio-professional categories may
+determine affordability and accessibility, with higher-income
+professionals favoring private vehicles and individuals in intermediate
+or lower-income categories depending more on public transport. This
+section aims to verify these hypotheses by analyzing the relationships
+between these socio-demographic characteristics and transportation
+behavior.
 
 ### Age
 
@@ -351,6 +327,9 @@ mob_age_aggregated <- mob_pro_cleaned %>%
   mutate(share = count / sum(count)) %>%  # Calculate share for each transportation mode in the age group
   ungroup()
 
+```
+
+```{r}
 ggplot(mob_age_aggregated, aes(x = age_10_year_slice, y = share, fill = age_10_year_slice)) +
   geom_bar(stat = "identity") +
   facet_wrap(~ main_transportation_work, scales = "free_y") +
@@ -361,9 +340,25 @@ ggplot(mob_age_aggregated, aes(x = age_10_year_slice, y = share, fill = age_10_y
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.position = "none")  # Hide legend to reduce clutter
-
 ```
 
+The graph shows the share that each transportation mode represents for
+each age group. (For example, 4% of the 25 to 34 year-olds use their
+bike to get to work.) It illustrates how the most common modes of
+commuting to work vary across age groups and overall aligns with the
+hypothesis that younger individuals prefer active and public transport
+modes, while older individuals gravitate toward private vehicles. Public
+transport usage is highest among the 15–24 age group and declines
+steadily with age, reflecting its popularity among younger individuals.
+Active transport modes show mixed trends: cycling decreases slightly
+with age, while walking is prominent in both the youngest (15–24) and
+oldest (55–64) groups. Private vehicle usage increases with age,
+stabilizing among middle-aged groups, consistent with older individuals'
+preference for comfort and convenience. Finally, the "no transport"
+category rises sharply among those aged 55–64, indicating reduced
+commutes in this group, maybe in cases of early retirement. Overall,
+regardless of age, commuting by car is still the norm, followed by the
+second most common transportation mode: public transport.
 
 ### Sex
 
@@ -376,19 +371,35 @@ mob_gender <- mob_pro_cleaned %>%
   ungroup()
 
 ```
+
 ```{r}
 ggplot(mob_gender, aes(x = sexe, y = share, fill = sexe)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~ main_transportation_work, scales = "free_y") +
   scale_y_continuous(labels = scales::percent_format()) +  # Show percentages on y-axis
   scale_fill_manual(values = c("Male" = "#1f77b4", "Female" = "#ff7f0e")) +  # Set distinct colors for male and female
-  labs(title = "Share of Transportation Modes by Gender", 
-       x = "Gender", 
+  labs(title = "Popularity of each Transportation Mode by Sex", 
+       x = "Sex", 
        y = "Share of Transportation (%)") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 0, hjust = 0.5),
         legend.position = "none")
 ```
+
+This graph focuses on each transportation mode, indicating the sex that
+primarily utilizes each one. (For instance 60% of the people, who
+commute by bike, are males.) It highlights sex-based differences in
+transportation preferences. Women rely more on public transport and
+walking, supporting the hypothesis that they favor these modes for
+commuting. Men exhibit a stronger preference for motorized two-wheelers
+and bicycles, as well as a slightly higher reliance on cars/trucks/vans.
+The "no transport" category is notably higher for women, possibly
+indicating a greater proportion of non-commuters or shorter trips not
+requiring traditional transport. These patterns align with the
+hypothesis that women prefer walking and public transport, while men
+lean toward private and motorized options, influenced by accessibility,
+commuting needs, and societal roles.
+
 ### Educational attainment
 
 ```{r}
@@ -417,32 +428,45 @@ ggplot(mob_education_aggregated, aes(x = education_group, y = share, fill = educ
   facet_wrap(~ main_transportation_work, scales = "free_y") +
   scale_y_continuous(labels = scales::percent_format()) +  # Show percentages on y-axis
   labs(title = "Share of Transportation Modes by Education Group", 
-       x = "Education Group", 
-       y = "Share of Transportation (%)") +
+       y = "Share of Transportation (%)",
+       x = "Education Group") +  # Explicit x-axis label
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, hjust = 0.5),
-        legend.position = "bottom")  # Place legend at the bottom for clarity
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5),  # Ensure x-axis text is centered
+    legend.position = "bottom",  # Place legend at the bottom
+    strip.text = element_text(size = 10),  # Adjust facet label size
+    plot.title = element_text(hjust = 0.5),  # Center-align the title
+    panel.spacing = unit(1, "lines")  # Add spacing between facets
+  ) +
+  guides(fill = guide_legend(title = "Education Group"))  # Add a clear legend title
 
 ```
-Group 1
-No schooling
-Primary or lower
-Secondary or higher
-CEP
-BEPC
 
-Group 2
-CAP/BEP
-General Bac
-Professional Bac
+We grouped the different levels of education in the following way:
 
-Group 3
-BTS/DUT
-Bachelor
+*Group 1: No schooling, Primary or lower, Secondary or higher, CEP,
+BEPC*
 
-Group 4
-Master
-Doctorate
+*Group 2: CAP/BEP, General Bac, Professional Bac*
+
+*Group 3: BTS/DUT, Bachelor*
+
+*Group 4: Master, Doctorate*
+
+This graph illustrates the share of transportation modes used by
+different education groups, categorized from Group 1 (lowest education
+level) to Group 4 (highest education level). (For example, 70% of
+people, whose highest qualification level is BTS/DUT or Bachelor,
+commute by car, truck or van.) It highlights a correlation between
+educational attainment and transportation preferences. Group 4,
+representing those with the highest education, shows the highest share
+of public transport and bicycle usage, reflecting potential
+environmental awareness and most likely urban accessibility. In
+contrast, reliance on cars/trucks/vans is highest in Groups 1 and 2.
+Walking ("on foot") is relatively consistent across all groups, with a
+slight increase in Group 4. These findings align with the hypothesis,
+suggesting education influences awareness, affordability, and access to
+sustainable transport.
 
 ### Socio-professional category
 
@@ -451,6 +475,7 @@ mob_pro_cleaned_socio <- mob_pro_cleaned %>%
   filter(!is.na(socio_professional_cat), !is.na(main_transportation_work))  # Remove missing values
 
 ```
+
 ```{r}
 mob_socio_prof_aggregated <- mob_pro_cleaned_socio %>%
   group_by(socio_professional_cat, main_transportation_work) %>%
@@ -460,6 +485,7 @@ mob_socio_prof_aggregated <- mob_pro_cleaned_socio %>%
   ungroup()
 
 ```
+
 ```{r}
 ggplot(mob_socio_prof_aggregated, aes(x = socio_professional_cat, y = share, fill = socio_professional_cat)) +
   geom_bar(stat = "identity") +
@@ -477,88 +503,121 @@ ggplot(mob_socio_prof_aggregated, aes(x = socio_professional_cat, y = share, fil
   )
 
 ```
-TRANSLATE
 
+The different socio-professional categories can be translated as such:
+
+*Agriculteurs exploitants (Farmers), Artisans (Craftsmen), Cadres
+(Executives), Employés (Employees), Ouvriers (Workers), Professions
+Intermédiaires (Intermediate Professions)*
+
+This graph illustrates the distribution of transportation modes by
+socio-professional category, highlighting key differences that align
+with the hypothesis that socio-economic factors influence commuting
+behavior. (For instance, 2% of craftsmen ("Artisans") commute using a
+motorized two−wheelers.) Farmers ("Agriculteurs exploitants")
+predominantly fall under "No Transport," likely reflecting their rural
+settings and lack of regular commutes. Public transport is most
+frequently used by executives ("Cadres") and employees ("Employés"),
+possibly due to urban job locations and access to infrastructure.
+Workers ("Ouvriers") show a high reliance on cars/trucks/vans,
+reflecting affordability and accessibility in suburban or rural areas.
+Motorized two-wheelers are notably used by craftsmen and workers, likely
+due to flexibility and affordability. Bicycles and walking are
+moderately used across categories, with a higher share among employees.
+Overall, this supports the hypothesis that socio-professional categories
+shape transport choices based on income, job type, and location.
 
 ## Income levels
 
-Living standard
+Income levels significantly influence transportation choices by shaping
+affordability and access to various modes. We hypothesize that wealthier
+households favor private vehicles or motorized transport for their
+convenience and comfort, while lower-income individuals rely more on
+public transport or walking due to cost constraints. This section
+investigates how income disparities impact commuting behavior and
+whether observed patterns align with these assumptions, offering
+insights into the role of economic factors in mobility decisions.
 
-Hypothesis:
-
--   Wealthier households may prioritize comfort and convenience, opting
-    for private cars or motorized transport.
-
--   Lower-income individuals may prefer public transport or walking due
-    to affordability constraints.
-    
 ```{r}
-# Create income categories
-final_dataset_cleaned2.0_2 <- final_dataset_cleaned2.0 %>%
-  mutate(income_category = cut(
-    median_living_standard_2021,
-    breaks = quantile(median_living_standard_2021, probs = seq(0, 1, by = 0.25), na.rm = TRUE),
-    labels = c("Low", "Mid-Low", "Mid-High", "High"),
-    include.lowest = TRUE
-  ))
+# Load required libraries
+library(dplyr)
+library(ggplot2)
+library(tidyr)
 
+# Create income categories based on the median living standard
+new_dataset$income_category <- cut(new_dataset$median_living_standard_2021, 
+                                   breaks = quantile(new_dataset$median_living_standard_2021, probs = seq(0, 1, 0.25), na.rm = TRUE), 
+                                   labels = c("Low", "Lower-Middle", "Upper-Middle", "High"), 
+                                   include.lowest = TRUE)
 
-# Melt the data for transportation modes
-melted_data <- final_dataset_cleaned2.0_2 %>%
-  select(
-    income_category,
-    no_transport_share,
-    on_foot_share,
-    bicycle_share,
-    motorized_two_wheelers_share,
-    car_truck_van_share,
-    public_transport_share
-  ) %>%
-  pivot_longer(
-    cols = c(no_transport_share, on_foot_share, bicycle_share, 
-             motorized_two_wheelers_share, car_truck_van_share, 
-             public_transport_share),
-    names_to = "Transport_Mode",
-    values_to = "Share"
-  )
+# Sum transportation mode values for each income category
+transport_columns <- c("no_transport_value", "on_foot_value", "bicycle_value",
+                       "motorized_two_wheelers_value", "car_truck_van_value", "public_transport_value")
 
-# Bar plot
+transport_by_income <- new_dataset %>%
+  group_by(income_category) %>%
+  summarise(across(all_of(transport_columns), sum, na.rm = TRUE))
 
-ggplot(melted_data, aes(x = income_category, y = Share, fill = income_category)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(
-    title = "Transportation Choices by Income Category",
-    x = "Income Category",
-    y = "Average Share"
-  ) +
+# Normalize the data within each income category
+transport_by_income_percent <- transport_by_income %>%
+  rowwise() %>%
+  mutate(total = sum(c_across(all_of(transport_columns))),
+         across(all_of(transport_columns), ~ . / total * 100)) %>%
+  select(-total) %>%
+  pivot_longer(cols = starts_with("no_transport_value"):starts_with("public_transport_value"),
+               names_to = "mode",
+               values_to = "percentage")
+
+# Plot the normalized data
+ggplot(transport_by_income_percent, aes(x = income_category, y = percentage, fill = mode)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Transportation Modes by Income Category",
+       x = "Income Category",
+       y = "Percentage of Transportation Mode Usage",
+       fill = "Transportation Mode") +
   theme_minimal() +
-  theme(legend.position = "none") + # Remove legend since it's redundant with facets
-  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport_Mode
-
+  theme(legend.position = "right")
 ```
+
+This graph illustrates the relationship between income categories (Low,
+Mid-Low, Mid-High, High) and transportation choices. To be more precise,
+due to the availability of the data, this graph shows the share that
+each transportation mode represents in each intercommunauté
+(intercommunity), depending on the median living standard of that
+intercommunity. Our observations are therefore less precise than if we
+had conducted the analysis at the household level. (For example, in low
+income intercommunities, 32% of people commute by public transport.)
+Public transport usage is highest among the low-income group and
+decreases as income rises, highlighting its affordability for
+lower-income individuals. Similarly, walking ("on foot") and commuting
+by motorized two-wheelers is more prevalent in lower-income
+intercommunities, reflecting reliance on cost-effective transport modes.
+Car/truck/van usage, represented by the dominant segment, remains high
+across all income groups, suggesting widespread dependence on private
+vehicles regardless of income. Bicycle usage is slightly in higher in
+low income intercommunities, possibly due to urban accessibility and
+environmental awareness. The "no transport" category doesn't seem to
+vary across the different income categories. Overall, the graph aligns
+with the hypothesis that higher income groups prioritize convenience,
+while lower-income individuals favor affordable transport modes.
 
 ## Infrastructures and urban/rural areas
 
-We want to use number of stops as an indicator of infrastructure. First we will see if that dataset seems reliable.
-```{r}
-model_stops = lm(formula = nb_stops ~ population_density_2021, data = final_dataset_cleaned2.0)
-summary(model_stops)
-```
-A linear model does not explain the relationship between number of stops and density. NOW WE TRY ANOTHER MODEL
-
-Using density as a proxy for urban/rural indicator proximity to
-transport infrastructure and population density
-
-Hypothesis:
-Proximity to transport infrastructure and population density affect the
-accessibility and practicality of transport modes.
-
--   Urban residents (higher density areas) are more likely to use public
-    transport or active transport due to better availability of
-    infrastructure and shorter travel distances.
-
--   Rural residents (lower density areas) are more dependent on private
-    vehicles due to limited access to public transport options.
+Proximity to transport infrastructure and urban/rural areas
+significantly influence the accessibility and practicality of
+transportation modes. Our hypothesis suggests that urban residents,
+living in higher-density areas, are more likely to use public transport,
+due to better infrastructure availability. Conversely, rural residents,
+facing lower population densities and limited access to public
+transport, are expected to rely more on private vehicles for their
+commutes. This section examines how geographic and infrastructural
+factors shape commuting behavior, offering insights into the disparities
+between urban and rural mobility patterns and the implications for
+sustainable transport planning. We will use population density to
+estimate whether an intercommunity is urban or rural. To estimate the
+quality of infrastructure we will use the number of stops from our
+experimental dataset, keeping in mind that this data is very
+approximative.
 
 ### Infrastructures
 
@@ -577,12 +636,21 @@ ggplot(final_dataset_cleaned2.0, aes(x = nb_stops, y = public_transport_share)) 
   theme_minimal()
 ```
 
+This scatterplot shows the relationship between the number of public
+transport stops and the share of public transport usage. The positive
+trend, represented by the red regression line, indicates that areas with
+a higher number of stops generally have a greater share of public
+transport usage. This aligns with the hypothesis that proximity to
+transport infrastructure enhances accessibility and encourages public
+transport adoption. While the relationship is evident, the wide
+dispersion of points, particularly at lower stop counts, suggests that
+other factors, such as urban density or socio-economic characteristics,
+also influence public transport usage. Overall, this graph supports the
+idea that improved transport infrastructure, such as increasing the
+number of stops, can facilitate greater reliance on public transport,
+especially in densely populated urban areas.
 
 ### Uban/rural areas
-
-The threshold of 150 inhabitants per square kilometer comes from Insee's
-official definition of urban units, which are used to differentiate
-between urban and rural areas in France.
 
 ```{r}
 final_dataset_cleaned2.0_3 <- final_dataset_cleaned2.0 %>%
@@ -599,48 +667,40 @@ ggplot(final_dataset_cleaned2.0_3, aes(x = urban_rural, y = car_truck_van_share)
   theme_minimal()
 ```
 
-```{r}
-# Scatterplot for Public Transport Share vs. Population Density
-ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = public_transport_share)) +
-  geom_point() +
-    geom_smooth(method = "lm", color = "blue", se = FALSE) +
-  labs(
-    title = "Public Transport Share vs. Population Density",
-    x = "Population Density (2021)",
-    y = "Public Transport Share"
-  ) +
-  theme_minimal()
-
-# Scatterplot for Car Share vs. Population Density
-ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = car_truck_van_share)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "blue", se = FALSE) +
-  labs(
-    title = "Car Share vs. Population Density",
-    x = "Population Density (2021)",
-    y = "Car Share for Work"
-  ) +
-  theme_minimal()
-```
-
+This boxplot compares car usage for work between rural and urban areas,
+highlighting differences based on population density. The median car
+share is higher in rural areas, with limited variation around the
+central value, indicating a strong dependence on private vehicles. This
+aligns with the hypothesis that rural residents rely more on cars due to
+limited public transport options and greater travel distances. In urban
+areas, while car use remains significant, the median share is lower, and
+the distribution shows a wider range, reflecting greater availability of
+alternative transport modes such as public transit or active modes.
+Overall, the graph supports the hypothesis that urban residents are less
+reliant on private vehicles compared to rural residents, largely due to
+better transport infrastructure and shorter commute distances.
 
 ## Commuting distances
 
-**Hypothesis:**\
-Commuting distances determine the feasibility of transport modes.
-
--   Shorter distances are associated with active modes (walking,
-    cycling), while longer distances are more likely to necessitate the
-    use of private vehicles or public transport.
-
--   Very long commutes may encourage reliance on private cars or trains,
-    depending on infrastructure availability.
+Commuting distance plays a critical role in determining the feasibility
+and practicality of different transport modes. Shorter distances are
+often associated with active modes such as walking or cycling, as they
+require less time and physical effort. In contrast, longer distances
+typically necessitate the use of private vehicles or public transport,
+offering greater efficiency and comfort for extended commutes. For very
+long commutes, individuals may rely on private cars or trains, depending
+on the availability and convenience of infrastructure. This section
+examines how commuting distances influence transportation choices,
+shedding light on the relationship between distance and mode
+feasibility, and providing insights into the dynamics of long- and
+short-distance commuting behavior.
 
 ```{r}
 mob_cleaned_distance <- mob_pro_cleaned %>%
   filter(!is.na(workplace_indicator))  # Remove rows with missing values in workplace_indicator
 
 ```
+
 ```{r}
 mob_distance_aggregated <- mob_cleaned_distance %>%
   group_by(workplace_indicator, main_transportation_work) %>%
@@ -650,6 +710,7 @@ mob_distance_aggregated <- mob_cleaned_distance %>%
   ungroup()
 
 ```
+
 ```{r}
 ggplot(mob_distance_aggregated, aes(x = workplace_indicator, y = share, fill = workplace_indicator)) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -668,79 +729,39 @@ ggplot(mob_distance_aggregated, aes(x = workplace_indicator, y = share, fill = w
 
 ```
 
+Commuting distance increases from 1 to 7, depending on workplace
+indicator.
 
-## Car ownership
+1.  Within the current commune of residence
 
-share of houselholds owning a car
+2.  In another commune within the same department of residence
 
-**Hypothesis:**\
-Car ownership directly influences the likelihood of using private
-vehicles for commuting.
+3.  In another department within the same region of residence
 
--   Households with cars are more likely to rely on them for commuting,
-    especially in areas with limited public transport options.
+4.  Outside the current region of residence: in mainland France
 
--   Households without cars are more likely to depend on public
-    transport, walking, or cycling for their commuting needs.
-    
-```{r}
-# Exclude cases where share_household_car = 0
-filtered_data_car <- final_dataset_cleaned2.0 %>%
-  filter(share_household_car != 0)
+5.  Outside the current region of residence: in an overseas department
+    (DOM)
 
-# Create quantile-based categories for share_household_car
-filtered_data_car <- filtered_data_car %>%
-  mutate(
-    share_household_car_category = cut(
-      share_household_car,
-      breaks = quantile(share_household_car, probs = seq(0, 1, by = 0.25), na.rm = TRUE),
-      labels = c("Low Share", "Mid-Low Share", "Mid-High Share", "High Share"),
-      include.lowest = TRUE
-    )
-  )
+6.  Outside the current region of residence: in an overseas community
+    (COM)
 
-# Melt the data for transportation modes grouped by share_household_car categories
-melted_data_car_share <- filtered_data_car %>%
-  select(
-    share_household_car_category,
-    no_transport_share,
-    on_foot_share,
-    bicycle_share,
-    motorized_two_wheelers_share,
-    car_truck_van_share,
-    public_transport_share
-  ) %>%
-  pivot_longer(
-    cols = c(no_transport_share, on_foot_share, bicycle_share, 
-             motorized_two_wheelers_share, car_truck_van_share, 
-             public_transport_share),
-    names_to = "Transport_Mode",
-    values_to = "Transport_Value"
-  )
+7.  Abroad
 
-# Summarize transportation choices by share_household_car categories
-summary_data_car_share <- melted_data_car_share %>%
-  group_by(share_household_car_category, Transport_Mode) %>%
-  summarise(Average_Value = mean(Transport_Value, na.rm = TRUE), .groups = "drop")
+This graph illustrates the share of transportation modes by commuting
+distance, correctly ordered from closest "Within Residence Commune" to
+furthest "Abroad", as per the provided reference. (For example, almost 2% of the people working abroad bike to work.) Walking and cycling
+are most prevalent for the shortest distances, such as "Within Residence
+Commune," supporting the hypothesis that active transport is feasible
+for closer commutes. Car usage dominates intermediate distances like
+"Other Commune in Same Dept." and "Abroad". Public transport peaks for
+longer distances, particularly for "Other Dept. (Same Region)".
+Motorized two-wheelers are favored for commutes in "Outside Region:
+COM". This interpretation confirms that commuting distances shape
+transportation preferences effectively.\
+*Note: when coding we should have ordered these workplace indicators
+using "levels" for improved readability.*
 
-# Create the faceted bar plot
-ggplot(summary_data_car_share, aes(x = share_household_car_category, y = Average_Value, fill = share_household_car_category)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(
-    title = "Transportation Choices by Share of Household Cars",
-    x = "Household Car Share Category",
-    y = "Average Value"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for clarity
-    legend.position = "none" # Remove legend as categories are on x-axis
-  ) +
-  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
-
-```
-
-    
 # Discussion
 
 -   Mention that some factors probably matter more than others. - use
