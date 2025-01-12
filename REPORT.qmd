@@ -114,6 +114,9 @@ foundation for our exploration of commuting behavior in France.
 library(vroom)
 library(tidyverse)
 library(here)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
 here::i_am("Final_Project_Commuter_behavior.Rproj")
 
 source <- "https://www.data.gouv.fr/fr/datasets/r/69cf54c6-6591-4920-b1d6-2a5292964606"
@@ -318,63 +321,35 @@ Hypothesis:
 
 ### Age
 ```{r}
-# Combine age groups into 4 broader categories
-melted_data <- new_dataset %>%
-  select(
-    age_15_24_value,
-    age_25_34_value,
-    age_35_44_value,
-    age_45_54_value,
-    age_55_64_value,
-    age_65_74_value,
-    age_75_84_value,
-    age_85_94_value,
-    no_transport_value,
-    on_foot_value,
-    bicycle_value,
-    motorized_two_wheelers_value,
-    car_truck_van_value,
-    public_transport_value
-  ) %>%
-  pivot_longer(
-    cols = starts_with("age_"),
-    names_to = "Age_Group",
-    values_to = "Age_Value"
-  ) %>%
-  mutate(
-    Age_Group = case_when(
-      Age_Group %in% c("age_15_24_value", "age_25_34_value") ~ "15-34",
-      Age_Group %in% c("age_35_44_value", "age_45_54_value") ~ "35-54",
-      Age_Group %in% c("age_55_64_value", "age_65_74_value") ~ "55-74",
-      Age_Group %in% c("age_75_84_value", "age_85_94_value") ~ "75-94",
-      TRUE ~ NA_character_
-    )
-  ) %>%
-  filter(!is.na(Age_Group)) %>% # Remove NA Age_Group values
-  pivot_longer(
-    cols = c(no_transport_value, on_foot_value, bicycle_value, 
-             motorized_two_wheelers_value, car_truck_van_value, 
-             public_transport_value),
-    names_to = "Transport_Mode",
-    values_to = "Transport_Value"
-  )
+# Filter out "Not Applicable" and focus on 10-year age slices
+mob_pro_cleaned$age_group <- cut(
+  as.numeric(sub("(\\d+).*", "\\1", mob_pro_cleaned$age_five_year_slice)),
+  breaks = seq(15, 95, by = 10),
+  right = FALSE,
+  include.lowest = TRUE,
+  labels = paste(seq(15, 85, by = 10), seq(24, 94, by = 10), sep = "-")
+)
 
-# Summarize transportation choices by broader age groups
-summary_data <- melted_data %>%
-  group_by(Age_Group, Transport_Mode) %>%
-  summarise(Average_Value = mean(Transport_Value, na.rm = TRUE), .groups = "drop")
+# Remove rows with NA age groups and "Not Applicable" in main_transportation_work
+mob_pro_cleaned <- subset(mob_pro_cleaned, !is.na(age_group) & main_transportation_work != "Not Applicable")
+```
 
-# Create the faceted bar plot
-ggplot(summary_data, aes(x = Age_Group, y = Average_Value, fill = Age_Group)) +
-  geom_bar(stat = "identity", position = "dodge") +
+```{r}
+
+# Create the stacked bar plot
+ggplot(data = mob_pro_cleaned, aes(x = age_group, fill = main_transportation_work)) +
+  geom_bar(position = "stack") +
   labs(
-    title = "Transportation Choices by Broad Age Groups",
-    x = "Broad Age Group",
-    y = "Average Value"
+    title = "Main Transportation to Work by Age Group (10-Year Slices)",
+    x = "Age Group",
+    y = "Count of Transportation Modes",
+    fill = "Mode of Transportation"
   ) +
   theme_minimal() +
-  theme(legend.position = "none") + # Remove legend as Age Group is on x-axis
-  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5)
+  )
 ```
 
 Doesn't allow for valuable analysis.
@@ -382,55 +357,21 @@ Doesn't allow for valuable analysis.
 ### Gender
 
 ```{r}
-# Melt the data for transportation modes grouped by gender
-melted_data_gender <- new_dataset %>%
-  select(
-    male_value,
-    female_value,
-    no_transport_value,
-    on_foot_value,
-    bicycle_value,
-    motorized_two_wheelers_value,
-    car_truck_van_value,
-    public_transport_value
-  ) %>%
-  pivot_longer(
-    cols = c(male_value, female_value),
-    names_to = "Gender",
-    values_to = "Gender_Value"
-  ) %>%
-  pivot_longer(
-    cols = c(no_transport_value, on_foot_value, bicycle_value, 
-             motorized_two_wheelers_value, car_truck_van_value, 
-             public_transport_value),
-    names_to = "Transport_Mode",
-    values_to = "Transport_Value"
-  ) %>%
-  mutate(
-    Gender = case_when(
-      Gender == "male_value" ~ "Male",
-      Gender == "female_value" ~ "Female",
-      TRUE ~ NA_character_
-    )
-  ) %>%
-  filter(!is.na(Gender)) # Remove NA Gender values
-
-# Summarize transportation choices by gender
-summary_data_gender <- melted_data_gender %>%
-  group_by(Gender, Transport_Mode) %>%
-  summarise(Average_Value = mean(Transport_Value, na.rm = TRUE), .groups = "drop")
-
 # Create the faceted bar plot
-ggplot(summary_data_gender, aes(x = Gender, y = Average_Value, fill = Gender)) +
-  geom_bar(stat = "identity", position = "dodge") +
+ggplot(data = mob_pro_cleaned, aes(x = sexe, fill = main_transportation_work)) +
+  geom_bar(position = "dodge") +
   labs(
-    title = "Transportation Choices by Gender",
+    title = "Main Transportation to Work by Gender",
     x = "Gender",
-    y = "Average Value"
+    y = "Count of Transportation Modes",
+    fill = "Mode of Transportation"
   ) +
   theme_minimal() +
-  theme(legend.position = "none") + # Remove legend as Gender is on x-axis
-  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5),
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  facet_wrap(~ main_transportation_work, scales = "free_y")
 
 ```
 
@@ -668,77 +609,21 @@ Commuting distances determine the feasibility of transport modes.
     depending on infrastructure availability.
 
 ```{r}
-# Melt the data for commuting distances
-melted_data_distance <- final_dataset_cleaned2.0 %>%
-  select(
-    within_residence_commune_share,
-    other_commune_same_dept_share,
-    other_dept_same_region_share,
-    outside_region_metropole_share,
-    outside_region_dom_share,
-    outside_region_com_share,
-    abroad_share,
-    no_transport_share,
-    on_foot_share,
-    bicycle_share,
-    motorized_two_wheelers_share,
-    car_truck_van_share,
-    public_transport_share
-  ) %>%
-  pivot_longer(
-    cols = c(
-      within_residence_commune_share,
-      other_commune_same_dept_share,
-      other_dept_same_region_share,
-      outside_region_metropole_share,
-      outside_region_dom_share,
-      outside_region_com_share,
-      abroad_share
-    ),
-    names_to = "Commuting_Distance",
-    values_to = "Distance_Share"
-  ) %>%
-  pivot_longer(
-    cols = c(no_transport_share, on_foot_share, bicycle_share, 
-             motorized_two_wheelers_share, car_truck_van_share, 
-             public_transport_share),
-    names_to = "Transport_Mode",
-    values_to = "Transport_Share"
-  ) %>%
-  mutate(
-    Commuting_Distance = case_when(
-      Commuting_Distance == "within_residence_commune_share" ~ "Within Residence Commune",
-      Commuting_Distance == "other_commune_same_dept_share" ~ "Other Commune Same Dept",
-      Commuting_Distance == "other_dept_same_region_share" ~ "Other Dept Same Region",
-      Commuting_Distance == "outside_region_metropole_share" ~ "Outside Region Metropole",
-      Commuting_Distance == "outside_region_dom_share" ~ "Outside Region DOM",
-      Commuting_Distance == "outside_region_com_share" ~ "Outside Region COM",
-      Commuting_Distance == "abroad_share" ~ "Abroad",
-      TRUE ~ NA_character_
-    )
-  ) %>%
-  filter(!is.na(Commuting_Distance)) # Remove rows with NA categories
-
-# Summarize transportation choices by commuting distances
-summary_data_distance <- melted_data_distance %>%
-  group_by(Commuting_Distance, Transport_Mode) %>%
-  summarise(Average_Share = mean(Transport_Share, na.rm = TRUE), .groups = "drop")
-
 # Create the faceted bar plot
-ggplot(summary_data_distance, aes(x = Commuting_Distance, y = Average_Share, fill = Commuting_Distance)) +
-  geom_bar(stat = "identity", position = "dodge") +
+ggplot(data = mob_pro_cleaned, aes(x = workplace_indicator, fill = main_transportation_work)) +
+  geom_bar(position = "dodge") +
   labs(
-    title = "Transportation Choices by Commuting Distance Categories",
-    x = "Commuting Distance Category",
-    y = "Average Share"
+    title = "Main Transportation to Work by Commuting Distance",
+    x = "Commuting Distance",
+    y = "Count of Transportation Modes",
+    fill = "Mode of Transportation"
   ) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for clarity
-    legend.position = "none" # Remove legend as categories are on x-axis
+    plot.title = element_text(hjust = 0.5)
   ) +
-  facet_wrap(~ Transport_Mode, scales = "free_y") # Facet by Transport Mode
-
+  facet_wrap(~ main_transportation_work, scales = "free_y")
 ```
 
 
