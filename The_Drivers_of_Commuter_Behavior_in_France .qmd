@@ -2718,6 +2718,14 @@ The COVID-19 pandemic brought large changes to commuting patterns, with remote w
 While our analysis identifies trends and relationships, our study has several limitations, such as the inability to infer causation and the potential for unmeasured confounding variables. Integrating additional data sources, such as workplace policies or real-time transport usage, could improve the robustness of our findings.
 By better modeling commuting behavior and accounting for changes like remote work, we could better understand how to design policies that effectively promote sustainable and equitable transportation systems.
 
+# Conclusion
+
+In the Harvard Business Review article "Why It’s So Hard to Change People’s Commuting Behavior" by Ariella Kristal and Ashley Whillans, the authors emphasize how entrenched commuting habits are and the difficulty in shifting them, even when presented with sustainable or convenient alternatives. This underscores the significance of understanding the factors that drive commuting choices, as any meaningful change requires addressing deeply ingrained behaviors, environmental constraints, and individual preferences.
+
+Our analysis highlighted patterns of commuting behavior, such as the link between population density and transportation choices. Income and education levels also emerged as influential in our findings. Moreover, gender and commuting distances revealed further differences.
+
+While our study identified meaningful correlations, it emphasized the complexity of commuting behavior and the need for further research to account for causal relationships and confounding variables. Future work could explore the long-term impacts of remote working, policy interventions, and urban planning on commuting patterns. 
+
     
 ```{r}
 write.csv(final_dataset_cleaned2.0, "final_dataset_cleaned2.0.csv", row.names = FALSE)
