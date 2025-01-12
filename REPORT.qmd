@@ -25,7 +25,7 @@ library(here)
 library(dplyr)
 here::i_am("Final_Project_Commuter_behavior.Rproj")
 final_dataset_cleaned2.0 <- vroom(here("final_dataset_cleaned2.0.csv"))
-mob_pro_cleaned <- vroom(here("mob_pro_cleaned.csv"))
+mob_pro_cleaned <- readRDS("mob_pro_cleaned.rds")
 ```
 
 ```{r}
@@ -728,25 +728,6 @@ ggplot(mob_distance_aggregated, aes(x = workplace_indicator, y = share, fill = w
 
 ```
 
-Commuting distance increases from 1 to 7, depending on workplace
-indicator.
-
-1.  Within the current commune of residence
-
-2.  In another commune within the same department of residence
-
-3.  In another department within the same region of residence
-
-4.  Outside the current region of residence: in mainland France
-
-5.  Outside the current region of residence: in an overseas department
-    (DOM)
-
-6.  Outside the current region of residence: in an overseas community
-    (COM)
-
-7.  Abroad
-
 This graph illustrates the share of transportation modes by commuting
 distance, correctly ordered from closest "Within Residence Commune" to
 furthest "Abroad", as per the provided reference. (For example, almost
@@ -759,8 +740,6 @@ longer distances, particularly for "Other Dept. (Same Region)".
 Motorized two-wheelers are favored for commutes in "Outside Region:
 COM". This interpretation confirms that commuting distances shape
 transportation preferences effectively.\
-*Note: when coding we should have ordered these workplace indicators
-using "levels" for improved readability.*
 
 # Discussion
 

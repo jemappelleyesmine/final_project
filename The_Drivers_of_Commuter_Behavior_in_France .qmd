@@ -2733,6 +2733,6 @@ write.csv(final_dataset_cleaned2.0, "final_dataset_cleaned2.0.csv", row.names = 
 ```
 
 ```{r}
-write.csv(mob_pro_cleaned, "mob_pro_cleaned.csv", row.names = FALSE)
+saveRDS(mob_pro_cleaned, "mob_pro_cleaned.rds", compress = "xz")
 ```
 
