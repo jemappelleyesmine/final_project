@@ -275,6 +275,13 @@ Hypothesis:
 
 ## Infrastructures and urban/rural areas
 
+We want to use number of stops as an indicator of infrastructure. First we will see if that dataset seems reliable.
+```{r}
+model_stops = lm(formula = nb_stops ~ population_density_2021, data = data)
+summary(model_stops)
+```
+A linear model does not explain the relationship between number of stops and density. NOW WE TRY ANOTHER MODEL
+
 Using density as a proxy for urban/rural indicator proximity to
 transport infrastructure and population density
 
@@ -320,6 +327,38 @@ vehicles for commuting.
 
 -   Households without cars are more likely to depend on public
     transport, walking, or cycling for their commuting needs.
+    
+    
+Now that we have seen visually how these factors relate to commuting behavior, let's try to find a model that is appropriate to explain commuting behavior. Here we use the average French intercommunauté.
+
+```{r}
+model_average = lm(formula = public_transport_share ~ population_density_2021 + 
+     share_household_car + median_living_standard_2021 + female_share + 
+     employes_share + cap_bep_share + other_commune_same_dept_share + 
+     age_45_54_share, data = data)
+summary(model_average)
+```
+This models seems to poorly reflect what's going on. Let's see if that has something to do with the fact that our dataset shows everything in shares.
+
+```{r}
+
+# Identify columns to exclude and the multiplier column
+columns_to_exclude <- c("code_epci", "intercommunal_label")
+multiplier_column <- "intercommunal_population_2021"
+
+# Create a new dataset where selected columns are multiplied
+new_dataset <- final_dataset_cleaned2.0
+columns_to_transform <- setdiff(names(final_dataset_cleaned2.0), c(columns_to_exclude, multiplier_column))
+
+# Apply the transformation
+new_dataset[columns_to_transform] <- lapply(columns_to_transform, function(col) {
+  final_dataset_cleaned2.0[[col]] * final_dataset_cleaned2.0[[multiplier_column]]
+})
+
+```
+
+
+
 
 # Discussion
 
