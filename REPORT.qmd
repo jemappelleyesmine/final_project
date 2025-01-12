@@ -380,7 +380,7 @@ ggplot(mob_gender, aes(x = sexe, y = share, fill = sexe)) +
        y = "Share of Transportation (%)") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 0, hjust = 0.5),
-        legend.position = "bottom")  # Place legend at the bottom for clarity
+        legend.position = "none")
 ```
 ### Educational attainment
 
@@ -439,152 +439,25 @@ Doctorate
 
 ### Socio-professional category
 
-
-```{r}
-mob_socio_prof <- mob_pro_cleaned %>%
-  group_by(socio_professional_cat, main_transportation_work) %>%
-  summarize(count = n()) %>%
-  ungroup()
-
-```
-
-
-```{r}
-ggplot(mob_socio_prof, aes(x = socio_professional_cat, y = count, fill = main_transportation_work)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Transportation Mode by Socio-Professional Category", x = "Category", y = "Count") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-```
-
-
-
-```{r}
-mob_socio_prof_aggregated <- mob_pro_cleaned %>%
-  mutate(
-    socio_professional_cat = case_when(
-      socio_professional_cat == "ouvriers" ~ "Workers",
-      socio_professional_cat == "employés" ~ "Employees",
-      socio_professional_cat == "professions intermediraies" ~ "Intermediate Professions",
-      socio_professional_cat == "cadres" ~ "Executives",
-      socio_professional_cat %in% c("artisans", "agriculteurs exploitants") ~ "Craftsmen and Farmers",
-      TRUE ~ socio_professional_cat
-    )
-  ) %>%
-  filter(socio_professional_cat %in% c("Workers", 
-                                       "Employees", 
-                                       "Intermediate Professions", 
-                                       "Executives", 
-                                       "Craftsmen and Farmers")) %>%
-  group_by(socio_professional_cat, main_transportation_work) %>%
-  summarize(count = n(), .groups = "drop") %>%
-  group_by(socio_professional_cat) %>%
-  mutate(share = count / sum(count)) %>%  # Calculate share for each transportation mode in the category
-  ungroup()
-
-# Plot the updated data
-ggplot(mob_socio_prof_aggregated, aes(x = socio_professional_cat, y = share, fill = socio_professional_cat)) +
-  geom_bar(stat = "identity") +
-  facet_wrap(~ main_transportation_work, scales = "free_y") +
-  scale_y_continuous(labels = scales::percent_format()) +  # Show percentages on y-axis
-  labs(title = "Share of Transportation Modes by Socio-Professional Category", 
-       x = "Socio-Professional Category", 
-       y = "Share of Transportation (%)") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")  # Remove legend for clarity
-
-
-```
-
-
-
-
-TRY AAGAIN
-
-
-
-```{r}
-mob_socio_prof_aggregated <- mob_pro_cleaned %>%
-  mutate(
-    socio_professional_cat = case_when(
-      socio_professional_cat == "ouvriers" ~ "Workers",
-      socio_professional_cat == "employés" ~ "Employees",
-      socio_professional_cat == "professions intermediraies" ~ "Intermediate Professions",
-      socio_professional_cat == "cadres" ~ "Executives",
-      socio_professional_cat %in% c("artisans", "agriculteurs exploitants") ~ "Craftsmen and Farmers",
-      TRUE ~ NA_character_  # Assign NA to unrecognized categories
-    )
-  ) %>%
-  filter(!is.na(socio_professional_cat), !is.na(main_transportation_work))  # Exclude missing values
-
-```
-```{r}
-mob_socio_prof_aggregated <- mob_socio_prof_aggregated %>%
-  group_by(socio_professional_cat, main_transportation_work) %>%
-  summarize(count = n(), .groups = "drop") %>%
-  group_by(socio_professional_cat) %>%
-  mutate(share = count / sum(count)) %>%  # Calculate the share of each transportation mode
-  ungroup()
-
-```
-```{r}
-print(nrow(mob_socio_prof_aggregated))  # Should be > 0
-print(unique(mob_socio_prof_aggregated$socio_professional_cat))  # Verify categories
-print(unique(mob_socio_prof_aggregated$main_transportation_work))  # Verify transportation modes
-
-```
-
-
-
-TRY AGAIN
-
-
-
-```{r}
-unique(mob_pro_cleaned$socio_professional_cat)
-
-```
-
 ```{r}
 mob_pro_cleaned_socio <- mob_pro_cleaned %>%
-  mutate(socio_professional_cat = tolower(trimws(socio_professional_cat)))  # Lowercase and trim whitespace
+  filter(!is.na(socio_professional_cat), !is.na(main_transportation_work))  # Remove missing values
 
 ```
-
 ```{r}
 mob_socio_prof_aggregated <- mob_pro_cleaned_socio %>%
-  mutate(
-    socio_professional_cat = case_when(
-      socio_professional_cat == "ouvriers" ~ "Workers",
-      socio_professional_cat == "employés" ~ "Employees",
-      socio_professional_cat == "Professions Intermédiaires" ~ "Intermediate Professions",
-      socio_professional_cat == "cadres" ~ "Executives",
-      socio_professional_cat %in% c("artisans", "agriculteurs exploitants") ~ "Craftsmen and Farmers",
-      TRUE ~ NA_character_  # Assign NA to unrecognized categories
-    )
-  ) %>%
-  filter(!is.na(socio_professional_cat), !is.na(main_transportation_work))  # Exclude missing values
-
-```
-```{r}
-print(unique(mob_socio_prof_aggregated$socio_professional_cat))  # Check translated categories
-print(nrow(mob_socio_prof_aggregated))  # Ensure the dataset has rows
-
-```
-```{r}
-mob_socio_prof_aggregated <- mob_socio_prof_aggregated %>%
   group_by(socio_professional_cat, main_transportation_work) %>%
   summarize(count = n(), .groups = "drop") %>%
   group_by(socio_professional_cat) %>%
   mutate(share = count / sum(count)) %>%  # Calculate the share of each transportation mode
   ungroup()
 
+```
+```{r}
 ggplot(mob_socio_prof_aggregated, aes(x = socio_professional_cat, y = share, fill = socio_professional_cat)) +
   geom_bar(stat = "identity") +
   facet_wrap(~ main_transportation_work, scales = "free_y") +
-  scale_y_continuous(labels = scales::percent_format()) +
+  scale_y_continuous(labels = scales::percent_format()) +  # Display percentages on y-axis
   labs(
     title = "Share of Transportation Modes by Socio-Professional Category",
     x = "Socio-Professional Category",
@@ -593,10 +466,11 @@ ggplot(mob_socio_prof_aggregated, aes(x = socio_professional_cat, y = share, fil
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
-    legend.position = "none"
+    legend.position = "none"  # Remove legend for clarity
   )
 
 ```
+TRANSLATE
 
 
 ## Income levels
@@ -745,8 +619,6 @@ ggplot(final_dataset_cleaned2.0, aes(x = population_density_2021, y = car_truck_
 
 ## Commuting distances
 
-commuting destinations
-
 **Hypothesis:**\
 Commuting distances determine the feasibility of transport modes.
 
@@ -758,37 +630,34 @@ Commuting distances determine the feasibility of transport modes.
     depending on infrastructure availability.
 
 ```{r}
-# Create the faceted bar plot
-ggplot(data = mob_pro_cleaned, aes(x = workplace_indicator, fill = main_transportation_work)) +
-  geom_bar(position = "dodge") +
-  labs(
-    title = "Main Transportation to Work by Commuting Distance",
-    x = "Commuting Distance",
-    y = "Count of Transportation Modes",
-    fill = "Mode of Transportation"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for clarity
-    plot.title = element_text(hjust = 0.5)
-  ) +
-  facet_wrap(~ main_transportation_work, scales = "free_y")
+mob_cleaned_distance <- mob_pro_cleaned %>%
+  filter(!is.na(workplace_indicator))  # Remove rows with missing values in workplace_indicator
+
 ```
-
-
 ```{r}
-mob_workplace <- mob_pro_cleaned %>%
+mob_distance_aggregated <- mob_cleaned_distance %>%
   group_by(workplace_indicator, main_transportation_work) %>%
-  summarize(count = n()) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  group_by(workplace_indicator) %>%
+  mutate(share = count / sum(count)) %>%  # Calculate the share of each transportation mode
   ungroup()
 
 ```
-
 ```{r}
-ggplot(mob_workplace, aes(x = workplace_indicator, y = count, fill = main_transportation_work)) +
+ggplot(mob_distance_aggregated, aes(x = workplace_indicator, y = share, fill = workplace_indicator)) +
   geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Transportation Mode by Workplace Indicator", x = "Workplace Location", y = "Count") +
-  theme_minimal()
+  facet_wrap(~ main_transportation_work, scales = "free_y") +
+  scale_y_continuous(labels = scales::percent_format()) +  # Show percentages on y-axis
+  labs(
+    title = "Share of Transportation Modes by Commuting Distance",
+    x = "Commuting Distance (Workplace Indicator)",
+    y = "Share of Transportation (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "none"  # Remove legend for clarity
+  )
 
 ```
 
