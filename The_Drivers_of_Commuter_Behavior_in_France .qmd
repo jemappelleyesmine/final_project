@@ -291,27 +291,58 @@ if (!file.exists(here(local_dir, local_name))) {
 
 ```{r}
 library(zip)
+library(vroom)
+library(here)
+
 # Define variables
 source <- "https://www.insee.fr/fr/statistiques/fichier/8205896/RP2021_mobpro.zip"
 local_name <- "RP2021_mobpro.zip"
 local_dir <- "data"
-csv1_name <- "FD_MOBPRO_2021.csv"
-csv2_name <- "varmod_mobpro_2021.csv"
+csv1_name <- "FD_MOBPRO_2021.csv.gz" # Compressed file name
+csv2_name <- "varmod_mobpro_2021.csv.gz" # Compressed file name
+
 # Check if the directory exists, create if not
 if (!dir.exists(here(local_dir))) {
   dir.create(here(local_dir))
 }
+
 # Check if the ZIP file exists locally
 if (!file.exists(here(local_dir, local_name))) {
   # Download the ZIP file
   download.file(source, destfile = here(local_dir, local_name), mode = "wb")
 }
+
 # Unzip the file
 unzip(here(local_dir, local_name), exdir = here(local_dir))
-# Load the first CSV file
-mob_pro <- vroom(here(local_dir, csv1_name))
-# Load the second CSV file
-var_mob_pro <- vroom(here(local_dir, csv2_name))
+
+# Define original uncompressed CSV file names from the ZIP
+original_csv1 <- "FD_MOBPRO_2021.csv"
+original_csv2 <- "varmod_mobpro_2021.csv"
+
+# Check and process the first CSV
+if (!file.exists(here(local_dir, csv1_name))) {
+  # Load the uncompressed CSV, compress, and save
+  mob_pro <- vroom(here(local_dir, original_csv1))
+  vroom_write(mob_pro, here(local_dir, csv1_name), delim = ",")
+  # Remove the original uncompressed CSV
+  file.remove(here(local_dir, original_csv1))
+} else {
+  # Load the already-compressed CSV
+  mob_pro <- vroom(here(local_dir, csv1_name))
+}
+
+# Check and process the second CSV
+if (!file.exists(here(local_dir, csv2_name))) {
+  # Load the uncompressed CSV, compress, and save
+  var_mob_pro <- vroom(here(local_dir, original_csv2))
+  vroom_write(var_mob_pro, here(local_dir, csv2_name), delim = ",")
+  # Remove the original uncompressed CSV
+  file.remove(here(local_dir, original_csv2))
+} else {
+  # Load the already-compressed CSV
+  var_mob_pro <- vroom(here(local_dir, csv2_name))
+}
+
 ```
 
 -   Loading iltduu_sexe_trans
