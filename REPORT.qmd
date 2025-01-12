@@ -763,8 +763,11 @@ walking or cycling being dominant for shorter distances. These findings
 show the links among socio-demographic, economic, geographic factors, as
 well as commuting behaviors. While our study focuses on correlations
 rather than causations, it tries to identify significant trends that
-could inform or guide future research. \## The influence of our
-variables Different factors likely play varying roles in influencing
+could inform or guide future research.
+
+## The influence of our variables
+
+Different factors likely play varying roles in influencing
 commuting behavior. For instance, population density and access to
 public transport infrastructure are expected to be more impactful than
 individual-level variables like education. To better understand the
@@ -775,7 +778,9 @@ However, we do recognize that the associations observed in this study
 cannot account for confounding variables, such as individual
 preferences, workplace policies, or social norms. A causal analysis
 would require further access to public data and a rigorous regression
-analysis. \## Modelling commuting behavior Using regression models, we
+analysis.
+
+## Modelling commuting behavior Using regression models, we
 explored how variables like population density, income levels, and
 public transport availability shape commuting choices. These models
 provide insights into how certain factors—like proximity to transport
@@ -785,14 +790,17 @@ vehicles. Modelling could be expanded to predict commuting behavior
 based on these variables, and could maybe be applied to policymaking, by
 simulating the impact of interventions like expanding public transport
 networks or incentivizing active modes of commuting (e.g., walking or
-cycling). \## The role of remote working The COVID-19 pandemic brought
+cycling).
+
+## The role of remote working The COVID-19 pandemic brought
 large changes to commuting patterns, with remote working reducing
 overall commute volumes and altering transportation mode shares. It
 would be interesting to extend our research by comparing pre- and
 post-COVID commuting data to measure the long-term impact of remote
 working on commute behavior. This could reveal shifts in preferences and
-highlight the potential for permanent changes in urban mobility. \##
-Possible future directions While our analysis identifies trends and
+highlight the potential for permanent changes in urban mobility.
+
+## Possible future directions While our analysis identifies trends and
 relationships, our study has several limitations, such as the inability
 to infer causation and the potential for unmeasured confounding
 variables. Integrating additional data sources, such as workplace
