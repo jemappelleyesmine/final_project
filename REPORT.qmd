@@ -238,6 +238,13 @@ seek to identify trends and relationships that shape commuting choices.
 Before seeing visually how these factors relate to commuting behavior, let's try to find a model that is appropriate to explain commuting behavior. Here we use the average French intercommunauté.
 
 ```{r}
+library(vroom)
+library(here)
+here::i_am("Final_Project_Commuter_behavior.Rproj")
+final_dataset_cleaned2.0 <- vroom(here("final_dataset_cleaned2.0.csv"))
+mob_pro_cleaned <- vroom(here("mob_pro_cleaned.csv"))
+
+
 model_average = lm(formula = public_transport_share ~ population_density_2021 + 
      share_household_car + median_living_standard_2021 + female_share + 
      employes_share + cap_bep_share + other_commune_same_dept_share + 
@@ -534,7 +541,7 @@ ggplot(melted_data, aes(x = income_category, y = Share, fill = income_category))
 
 We want to use number of stops as an indicator of infrastructure. First we will see if that dataset seems reliable.
 ```{r}
-model_stops = lm(formula = nb_stops ~ population_density_2021, data = data)
+model_stops = lm(formula = nb_stops ~ population_density_2021, data = final_dataset_cleaned2.0)
 summary(model_stops)
 ```
 A linear model does not explain the relationship between number of stops and density. NOW WE TRY ANOTHER MODEL
